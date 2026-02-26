@@ -36,9 +36,20 @@ export default function LoginPage() {
             {/* Left Side - Form */}
             <div className="flex-1 flex items-center justify-center p-8 bg-white">
                 <div className="w-full max-w-md">
+                    {/* Back to Home Button */}
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 text-gray-500 hover:text-[#C58B2B] transition-colors mb-6"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        <span>Retour à l'accueil</span>
+                    </Link>
+
                     {/* Logo */}
                     <div className="flex items-center gap-2 w-[170px] h-[50px] mb-8">
-                        <img className="w-full h-full" src="kora-logo.png" alt="Logo de kora"/>
+                        <img className="w-full h-full" src="kora-logo.png" alt="Logo de kora" />
                     </div>
 
                     {/* Heading */}
@@ -104,7 +115,7 @@ export default function LoginPage() {
                             </div>
                         </div>
 
-                        
+
                         {/* Submit Button */}
                         <button
                             type="submit"

@@ -1,13 +1,17 @@
 import Link from "next/link";
 
 export default function Home() {
+  const year = new Date().getFullYear();
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="border-b border-white/10">
+      <header className="border-b border-gray-200">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 w-[170px] h-[50px]">
-            <img className="w-full h-full" src="kora-logo.png" alt="Logo de kora"/>
+            <Link href="/">
+              <img className="w-full h-full" src="kora-logo.png" alt="Logo de kora" />
+            </Link>
           </div>
           <nav className="hidden md:flex items-center gap-8">
             <Link href="/" className="text-gray-800 hover:text-kora-gold transition-colors">
@@ -16,8 +20,11 @@ export default function Home() {
             <Link href="/login" className="text-gray-800 hover:text-kora-gold transition-colors">
               Ressources
             </Link>
-            <Link href="/login" className="text-gray-800 hover:text-kora-gold transition-colors">
+            <Link href="/about" className="text-gray-800 hover:text-kora-gold transition-colors">
               À propos
+            </Link>
+            <Link href="/contact" className="text-gray-800 hover:text-kora-gold transition-colors">
+              Contact
             </Link>
           </nav>
           <div className="flex items-center gap-4">
@@ -29,7 +36,7 @@ export default function Home() {
             </Link>
             <Link
               href="/register"
-              className="bg-kora-gold text-kora-dark px-4 py-2 rounded-lg font-medium hover:bg-yellow-600 transition-colors"
+              className="bg-kora-gold text-white px-4 py-2 rounded-lg font-medium hover:bg-yellow-600 transition-colors"
             >
               Inscription
             </Link>
@@ -52,7 +59,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register"
-                className="bg-kora-gold text-kora-dark px-8 py-3 rounded-lg font-semibold text-lg hover:bg-yellow-600 transition-colors"
+                className="bg-kora-gold text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-yellow-600 transition-colors"
               >
                 Commencer maintenant
               </Link>
@@ -93,7 +100,7 @@ export default function Home() {
                   <svg className="w-6 h-6 text-kora-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
-                </div>  
+                </div>
                 <h3 className="text-xl font-semibold text-black mb-2">Accessibilité</h3>
                 <p className="text-gray-400">
                   Accédez à vos ressources même hors ligne.
@@ -120,9 +127,16 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-8">
-        <div className="container mx-auto px-4 text-center text-gray-500">
-          <p>© 2026 KORA. Tous droits réservés.</p>
+      <footer className="bg-gray-50 border-t border-gray-200 py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <img className="w-30 h-8" src="kora-logo.png" alt="Logo de kora" />
+            </div>
+            <p className="text-gray-500 text-sm">
+              © 2025 - {year} KORA. Tous droits réservés.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

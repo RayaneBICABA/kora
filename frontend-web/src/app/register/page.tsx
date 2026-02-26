@@ -100,6 +100,17 @@ export default function RegisterPage() {
             {/* Left Side - Form */}
             <div className="flex-1 flex items-center justify-center p-8 bg-white">
                 <div className="w-full max-w-md">
+                    {/* Back to Home Button */}
+                    <Link 
+                        href="/" 
+                        className="inline-flex items-center gap-2 text-gray-500 hover:text-[#C58B2B] transition-colors mb-6"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        <span>Retour à l'accueil</span>
+                    </Link>
+
                     {/* Logo */}
                      <div className="flex items-center gap-2 w-[170px] h-[50px] mb-8">
                         <img className="w-full h-full" src="kora-logo.png" alt="Logo de kora"/>
@@ -369,7 +380,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Right Side - Background with Logo */}
-            <div className="hidden lg:flex flex-1 bg-[#1E1E1E] relative overflow-hidden">
+            <div className="hidden lg:flex flex-1 bg-[#1E1E1E] justify-center items-center relative overflow-hidden">
                 {/* Decorative circles */}
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute top-1/4 left-1/4 w-64 h-64 border border-[#C58B2B] rounded-full"></div>
