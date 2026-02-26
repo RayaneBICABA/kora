@@ -201,12 +201,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
                     const SizedBox(height: 32),
 
-                    _currentStep == 0
-                        ? CustomButton(
+                    if (_currentStep == 0) CustomButton(
                             text: 'Suivant',
                             onPressed: _goToNextStep,
-                          )
-                        : Row(
+                          ) else Row(
                             children: [
                               Expanded(
                                 child: CustomButton(
@@ -325,6 +323,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
+                  // ignore: deprecated_member_use
                   AppColors.white.withOpacity(0.9),
                 ],
               ),
@@ -348,6 +347,7 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void _showUniversityPicker() {
+    // ignore: inference_failure_on_function_invocation
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
