@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../core/network/auth_api_service.dart';
 import '../../core/config/colors.dart';
 import '../../core/config/kora_icons.dart';
 import '../../core/config/text_styles.dart';
@@ -18,34 +19,75 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _universityController = TextEditingController();
   String? _selectedUniversity;
   bool _isLoading = false;
+  bool _isUniversitiesLoading = false;
 
-  final List<String> _universities = [
-    'Université BIT (Burkina Institute of Technology)',
-    'Université de Ouagadougou',
-    'Université Nazi Boni',
-    'Université Thomas Sankara',
-  ];
+  List<String> _universities = <String>[];
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadUniversities());
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _universityController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadUniversities() async {
+    setState(() => _isUniversitiesLoading = true);
+    try {
+      final universities = await AuthApiService.getUniversities();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _universities = universities;
+      });
+    } catch (_) {
+      // Ne bloque pas la connexion si la liste des universités échoue
+    } finally {
+      if (mounted) {
+        setState(() => _isUniversitiesLoading = false);
+      }
+    }
   }
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      // Simulation d'une connexion
-      // ignore: inference_failure_on_instance_creation
-      await Future.delayed(const Duration(seconds: 2));
+      try {
+        await AuthApiService.login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
 
-      if (mounted) {
+        if (!mounted) {
+          return;
+        }
+
         setState(() => _isLoading = false);
         unawaited(Navigator.of(context).pushReplacementNamed('/home'));
+      } catch (error) {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AuthApiService.parseError(error)),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
   }
@@ -117,23 +159,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       CustomTextField(
                         hintText: 'Université',
                         readOnly: true,
+                        enabled: !_isUniversitiesLoading,
                         prefixWidget: KoraIcons.university(
                           size: 20,
                           color: AppColors.iconDark,
                         ),
                         suffixIcon: const Icon(Icons.keyboard_arrow_down),
-                        controller: TextEditingController(
-                          text: _selectedUniversity,
-                        ),
+                        controller: _universityController,
                         onTap: _showUniversityPicker,
-                        validator: (value) {
-                          if (_selectedUniversity == null) {
-                            return 'Veuillez sélectionner votre université';
-                          }
-                          return null;
-                        },
                       ),
-
 
                       const SizedBox(height: 64),
 
@@ -237,6 +271,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// Affiche le sélecteur d'université
   void _showUniversityPicker() {
+    if (_universities.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Liste des universités indisponible pour le moment.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     // ignore: inference_failure_on_function_invocation
     showModalBottomSheet(
       context: context,
@@ -267,6 +311,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onTap: () {
                     setState(() {
                       _selectedUniversity = university;
+                      _universityController.text = university;
                     });
                     Navigator.pop(context);
                   },

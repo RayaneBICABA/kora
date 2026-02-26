@@ -8,6 +8,8 @@ import '../../core/config/colors.dart';
 import '../../core/config/kora_icons.dart';
 import '../../core/config/text_styles.dart';
 import '../../core/config/widgets.dart';
+import '../../core/network/auth_api_service.dart';
+import '../../core/network/session_manager.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -22,31 +24,54 @@ class _SignupScreenState extends State<SignupScreen> {
   final _step2FormKey = GlobalKey<FormState>();
 
   // ================= CONTROLLERS =================
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _universityController = TextEditingController();
 
   String? _selectedUniversity;
   File? _profileImage;
 
   bool _isLoading = false;
+  bool _isUniversitiesLoading = false;
   int _currentStep = 0;
 
-  final List<String> _universities = [
-    'Université BIT (Burkina Institute of Technology)',
-    'Université de Ouagadougou',
-    'Université Nazi Boni',
-    'Université Thomas Sankara',
-  ];
+  List<String> _universities = <String>[];
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadUniversities());
+  }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _universityController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadUniversities() async {
+    setState(() => _isUniversitiesLoading = true);
+    try {
+      final universities = await AuthApiService.getUniversities();
+      if (!mounted) {
+        return;
+      }
+      setState(() => _universities = universities);
+    } catch (_) {
+      // Pas bloquant pour l'écran
+    } finally {
+      if (mounted) {
+        setState(() => _isUniversitiesLoading = false);
+      }
+    }
   }
 
   // ================= IMAGE PICKER =================
@@ -70,15 +95,38 @@ class _SignupScreenState extends State<SignupScreen> {
 
     setState(() => _isLoading = true);
 
-    // ignore: inference_failure_on_instance_creation
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      await AuthApiService.register(
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        universityName: _selectedUniversity!.trim(),
+      );
 
-    if (!mounted) return;
+      if (_profileImage != null) {
+        final imageUrl =
+            await AuthApiService.uploadProfileImage(_profileImage!);
+        await SessionManager.saveProfileImageUrl(imageUrl);
+      }
 
-    setState(() => _isLoading = false);
+      if (!mounted) return;
 
-    // Retour au login
-    Navigator.of(context).pop();
+      setState(() => _isLoading = false);
+      Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AuthApiService.parseError(error)),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _navigateToLogin() {
@@ -90,16 +138,23 @@ class _SignupScreenState extends State<SignupScreen> {
     return [
       _buildProfileImagePicker(),
       const SizedBox(height: 32),
-
       CustomTextField(
-        controller: _nameController,
-        hintText: 'Nom complet',
+        controller: _firstNameController,
+        hintText: 'Prénom',
+        prefixIcon: Icons.person_outline,
+        validator: (value) => value == null || value.isEmpty
+            ? 'Veuillez entrer votre prénom'
+            : null,
+      ),
+      const SizedBox(height: 16),
+      CustomTextField(
+        controller: _lastNameController,
+        hintText: 'Nom',
         prefixIcon: Icons.person_outline,
         validator: (value) =>
             value == null || value.isEmpty ? 'Veuillez entrer votre nom' : null,
       ),
       const SizedBox(height: 16),
-
       CustomTextField(
         controller: _emailController,
         hintText: 'Email',
@@ -137,7 +192,6 @@ class _SignupScreenState extends State<SignupScreen> {
         },
       ),
       const SizedBox(height: 16),
-
       CustomTextField(
         controller: _confirmPasswordController,
         hintText: 'Confirmer mot de passe',
@@ -154,16 +208,16 @@ class _SignupScreenState extends State<SignupScreen> {
         },
       ),
       const SizedBox(height: 16),
-
       CustomTextField(
         hintText: 'Université',
         readOnly: true,
+        enabled: !_isUniversitiesLoading,
         prefixWidget: KoraIcons.university(
           size: 20,
           color: AppColors.iconDark,
         ),
         suffixIcon: const Icon(Icons.keyboard_arrow_down),
-        controller: TextEditingController(text: _selectedUniversity),
+        controller: _universityController,
         onTap: _showUniversityPicker,
         validator: (_) =>
             _selectedUniversity == null ? 'Université obligatoire' : null,
@@ -198,35 +252,33 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 32),
-
-                    if (_currentStep == 0) CustomButton(
-                            text: 'Suivant',
-                            onPressed: _goToNextStep,
-                          ) else Row(
-                            children: [
-                              Expanded(
-                                child: CustomButton(
-                                  text: 'Retour',
-                                  outlined: true,
-                                  onPressed: () =>
-                                      setState(() => _currentStep = 0),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: CustomButton(
-                                  text: "S'inscrire",
-                                  isLoading: _isLoading,
-                                  onPressed: _handleSignup,
-                                ),
-                              ),
-                            ],
+                    if (_currentStep == 0)
+                      CustomButton(
+                        text: 'Suivant',
+                        onPressed: _goToNextStep,
+                      )
+                    else
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomButton(
+                              text: 'Retour',
+                              outlined: true,
+                              onPressed: () => setState(() => _currentStep = 0),
+                            ),
                           ),
-
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: CustomButton(
+                              text: "S'inscrire",
+                              isLoading: _isLoading,
+                              onPressed: _handleSignup,
+                            ),
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 24),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -347,6 +399,16 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void _showUniversityPicker() {
+    if (_universities.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Liste des universités indisponible pour le moment.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     // ignore: inference_failure_on_function_invocation
     showModalBottomSheet(
       context: context,
@@ -372,7 +434,10 @@ class _SignupScreenState extends State<SignupScreen> {
                     ? const Icon(Icons.check, color: AppColors.primaryGold)
                     : null,
                 onTap: () {
-                  setState(() => _selectedUniversity = university);
+                  setState(() {
+                    _selectedUniversity = university;
+                    _universityController.text = university;
+                  });
                   Navigator.pop(context);
                 },
               ),
