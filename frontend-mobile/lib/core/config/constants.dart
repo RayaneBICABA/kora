@@ -9,7 +9,11 @@ class AppConstants {
       'Plateforme de centralisation et de transmission des ressources académiques';
 
   // Configuration API
-  static const String baseUrl = 'https://api.kora.bf'; // À définir
+  static const String baseUrl = String.fromEnvironment(
+    'KORA_API_BASE_URL',
+    defaultValue: 'http://10.0.2.2:3000',
+  );
+  static const String apiPrefix = '/api';
   static const Duration apiTimeout = Duration(seconds: 30);
   static const Duration connectionTimeout = Duration(seconds: 15);
 
@@ -58,5 +62,6 @@ class AppConstants {
       'Problème de connexion. Vérifiez votre connexion internet.';
   static const String errorServerMessage =
       'Erreur serveur. Veuillez réessayer plus tard.';
-  static const String errorUnknownMessage = "Une erreur inattendue s'est produite.";
+  static const String errorUnknownMessage =
+      "Une erreur inattendue s'est produite.";
 }
