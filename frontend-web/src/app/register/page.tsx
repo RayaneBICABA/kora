@@ -1,21 +1,54 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 
 type Step = 1 | 2;
 
 export default function RegisterPage() {
+    const router = useRouter();
+    const { register } = useAuth();
     const [currentStep, setCurrentStep] = useState<Step>(1);
     const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Form data stored in state
+    const [formData, setFormData] = useState({
+        nom: "",
+        prenom: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+        universite: "",
+    });
 
     const steps = [
         { number: 1, label: "Informations" },
         { number: 2, label: "Sécurité" },
     ];
 
+    // Update form data when inputs change
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFormData((prev) => ({
+            ...prev,
+            [e.target.name]: e.target.value,
+        }));
+    };
+
     const nextStep = (e: React.MouseEvent) => {
         e.preventDefault();
+
+        // Validate step 1 fields before moving to step 2
+        if (!formData.nom || !formData.prenom || !formData.email || !formData.universite) {
+            setError("Veuillez remplir tous les champs obligatoires");
+            return;
+        }
+
+        setError("");
         if (currentStep < 2) {
             setCurrentStep((prev) => (prev + 1) as Step);
         }
@@ -27,21 +60,66 @@ export default function RegisterPage() {
         }
     };
 
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setIsLoading(true);
+
+        if (formData.password !== formData.confirmPassword) {
+            setError("Les mots de passe ne correspondent pas");
+            setIsLoading(false);
+            return;
+        }
+
+        if (formData.password.length < 6) {
+            setError("Le mot de passe doit contenir au moins 6 caractères");
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            // Register as admin for university administration
+            await register({
+                nom: formData.nom,
+                prenom: formData.prenom,
+                email: formData.email,
+                motDePasse: formData.password,
+                role: "admin",
+                universite: formData.universite,
+            });
+            router.push("/dashboard");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Une erreur s'est produite");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-kora-dark flex">
+        <div className="min-h-screen flex">
             {/* Left Side - Form */}
-            <div className="flex-1 flex items-center bg-white justify-center p-8">
+            <div className="flex-1 flex items-center justify-center p-8 bg-white">
                 <div className="w-full max-w-md">
                     {/* Logo */}
                     <div className="flex items-center gap-2 mb-8">
-                        <img className="w-[150px] h-[50px]" src="/kora-logo.png" alt="Logo de Kora" />
+                        <div className="w-12 h-12 bg-[#C58B2B] rounded-xl flex items-center justify-center">
+                            <span className="text-white font-bold text-2xl">K</span>
+                        </div>
+                        <span className="text-[#1E1E1E] font-bold text-2xl">KORA</span>
                     </div>
 
                     {/* Heading */}
-                    <h1 className="text-3xl font-bold text-white mb-2">Créer un compte</h1>
-                    <p className="text-gray-400 mb-8">
+                    <h1 className="text-3xl font-bold text-[#1E1E1E] mb-2">Créer un compte</h1>
+                    <p className="text-gray-500 mb-8">
                         Espace Administration Universitaire
                     </p>
+
+                    {/* Error Message */}
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                            {error}
+                        </div>
+                    )}
 
                     {/* Stepper */}
                     <div className="flex items-center justify-between mb-8">
@@ -50,10 +128,10 @@ export default function RegisterPage() {
                                 <div className="flex flex-col items-center">
                                     <div
                                         className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${currentStep > step.number
-                                            ? "bg-kora-gold text-kora-dark"
+                                            ? "bg-[#C58B2B] text-white"
                                             : currentStep === step.number
-                                                ? "bg-kora-gold text-kora-dark ring-4 ring-kora-gold/30"
-                                                : "bg-white/10 text-gray-400"
+                                                ? "bg-[#C58B2B] text-white ring-4 ring-[#C58B2B]/30"
+                                                : "bg-gray-100 text-gray-400"
                                             }`}
                                     >
                                         {currentStep > step.number ? (
@@ -64,13 +142,13 @@ export default function RegisterPage() {
                                             step.number
                                         )}
                                     </div>
-                                    <span className={`text-xs mt-2 ${currentStep >= step.number ? "text-white" : "text-gray-500"}`}>
+                                    <span className={`text-xs mt-2 ${currentStep >= step.number ? "text-gray-900" : "text-gray-400"}`}>
                                         {step.label}
                                     </span>
                                 </div>
                                 {index < steps.length - 1 && (
                                     <div
-                                        className={`w-20 h-0.5 mx-2 ${currentStep > step.number ? "bg-kora-gold" : "bg-white/10"
+                                        className={`w-20 h-0.5 mx-2 ${currentStep > step.number ? "bg-[#C58B2B]" : "bg-gray-200"
                                             }`}
                                     />
                                 )}
@@ -79,44 +157,56 @@ export default function RegisterPage() {
                     </div>
 
                     {/* Form */}
-                    <form className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Step 1: Personal Info */}
                         {currentStep === 1 && (
                             <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-2">
-                                            Prénom
+                                        <label htmlFor="prenom" className="block text-sm font-medium text-gray-700 mb-2">
+                                            Prénom *
                                         </label>
                                         <input
                                             type="text"
-                                            id="firstName"
+                                            name="prenom"
+                                            id="prenom"
+                                            required
+                                            value={formData.prenom}
+                                            onChange={handleChange}
                                             placeholder="John"
-                                            className="w-full px-4 py-3 bg-white/5 border border-black/10 rounded-lg text-black placeholder-gray-500 focus:ring-2 focus:ring-kora-gold focus:border-transparent focus:outline-none transition-all"
+                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#C58B2B] focus:border-transparent focus:outline-none transition-all"
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="lastName" className="block text-sm font-medium text-gray-300 mb-2">
-                                            Nom
+                                        <label htmlFor="nom" className="block text-sm font-medium text-gray-700 mb-2">
+                                            Nom *
                                         </label>
                                         <input
                                             type="text"
-                                            id="lastName"
+                                            name="nom"
+                                            id="nom"
+                                            required
+                                            value={formData.nom}
+                                            onChange={handleChange}
                                             placeholder="Doe"
-                                            className="w-full px-4 py-3 bg-white/5 border border-black/10 rounded-lg text-black placeholder-gray-500 focus:ring-2 focus:ring-kora-gold focus:border-transparent focus:outline-none transition-all"
+                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#C58B2B] focus:border-transparent focus:outline-none transition-all"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                                        Email professionnel
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                                        Email professionnel *
                                     </label>
                                     <input
                                         type="email"
+                                        name="email"
                                         id="email"
+                                        required
+                                        value={formData.email}
+                                        onChange={handleChange}
                                         placeholder="john.doe@university.edu"
-                                        className="w-full px-4 py-3 bg-white/5 border border-black/10 rounded-lg text-black placeholder-gray-500 focus:ring-2 focus:ring-kora-gold focus:border-transparent focus:outline-none transition-all"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#C58B2B] focus:border-transparent focus:outline-none transition-all"
                                     />
                                     <p className="text-xs text-gray-500 mt-1">
                                         Utilisez votre email professionnel universitaire
@@ -124,15 +214,37 @@ export default function RegisterPage() {
                                 </div>
 
                                 <div>
-                                    <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
+                                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                                         Téléphone
                                     </label>
                                     <input
                                         type="tel"
+                                        name="phone"
                                         id="phone"
+                                        value={formData.phone}
+                                        onChange={handleChange}
                                         placeholder="+226 XX XX XX XX"
-                                        className="w-full px-4 py-3 bg-white/5 border border-black/10 rounded-lg text-black placeholder-gray-500 focus:ring-2 focus:ring-kora-gold focus:border-transparent focus:outline-none transition-all"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#C58B2B] focus:border-transparent focus:outline-none transition-all"
                                     />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="universite" className="block text-sm font-medium text-gray-700 mb-2">
+                                        Université (votre institution) *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="universite"
+                                        id="universite"
+                                        required
+                                        value={formData.universite}
+                                        onChange={handleChange}
+                                        placeholder="Université de Ouagadougou"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#C58B2B] focus:border-transparent focus:outline-none transition-all"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        Entrez le nom de votre université. Si elle existe déjà, elle sera associée à votre compte.
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -140,21 +252,32 @@ export default function RegisterPage() {
                         {/* Step 2: Security */}
                         {currentStep === 2 && (
                             <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+                                {/* Hidden fields from step 1 */}
+                                <input type="hidden" name="nom" value={formData.nom} />
+                                <input type="hidden" name="prenom" value={formData.prenom} />
+                                <input type="hidden" name="email" value={formData.email} />
+                                <input type="hidden" name="phone" value={formData.phone} />
+
                                 <div>
-                                    <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                                        Mot de passe
+                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                                        Mot de passe *
                                     </label>
                                     <div className="relative">
                                         <input
                                             type={showPassword ? "text" : "password"}
+                                            name="password"
                                             id="password"
+                                            required
+                                            minLength={6}
+                                            value={formData.password}
+                                            onChange={handleChange}
                                             placeholder="••••••••"
-                                            className="w-full px-4 py-3 bg-white/5 border border-black/10 rounded-lg text-black placeholder-gray-500 focus:ring-2 focus:ring-kora-gold focus:border-transparent focus:outline-none transition-all pr-12"
+                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#C58B2B] focus:border-transparent focus:outline-none transition-all pr-12"
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                                         >
                                             {showPassword ? (
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,29 +294,35 @@ export default function RegisterPage() {
                                 </div>
 
                                 <div>
-                                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                                        Confirmer le mot de passe
+                                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                                        Confirmer le mot de passe *
                                     </label>
                                     <input
                                         type="password"
+                                        name="confirmPassword"
                                         id="confirmPassword"
+                                        required
+                                        minLength={6}
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
                                         placeholder="••••••••"
-                                        className="w-full px-4 py-3 bg-white/5 border border-black/10 rounded-lg text-black placeholder-gray-500 focus:ring-2 focus:ring-kora-gold focus:border-transparent focus:outline-none transition-all"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#C58B2B] focus:border-transparent focus:outline-none transition-all"
                                     />
                                 </div>
 
                                 <label className="flex items-start gap-3 cursor-pointer">
                                     <input
                                         type="checkbox"
-                                        className="w-4 h-4 mt-1 bg-white/5 border-black/20 rounded focus:ring-kora-gold focus:ring-offset-0"
+                                        required
+                                        className="w-4 h-4 mt-1 bg-gray-50 border-gray-300 rounded focus:ring-[#C58B2B]"
                                     />
-                                    <span className="text-sm text-gray-400">
+                                    <span className="text-sm text-gray-500">
                                         J'accepte les{" "}
-                                        <Link href="/terms" className="text-kora-gold hover:text-yellow-400 transition-colors">
+                                        <Link href="/terms" className="text-[#C58B2B] hover:text-yellow-600 transition-colors">
                                             conditions d'utilisation
                                         </Link>{" "}
                                         et la{" "}
-                                        <Link href="/privacy" className="text-kora-gold hover:text-yellow-400 transition-colors">
+                                        <Link href="/privacy" className="text-[#C58B2B] hover:text-yellow-600 transition-colors">
                                             politique de confidentialité
                                         </Link>
                                     </span>
@@ -207,7 +336,7 @@ export default function RegisterPage() {
                                 <button
                                     type="button"
                                     onClick={prevStep}
-                                    className="flex-1 py-3 border border-black/20 text-black font-medium rounded-lg hover:bg-black/5 transition-colors"
+                                    className="flex-1 py-3 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
                                 >
                                     Retour
                                 </button>
@@ -215,42 +344,51 @@ export default function RegisterPage() {
                             {currentStep < 2 ? (
                                 <button
                                     type="button"
-                                    onClick={(e) => nextStep(e)}
-                                    className={`${currentStep === 1 ? "w-full" : "flex-1"} py-3 bg-kora-gold text-kora-dark font-semibold rounded-lg hover:bg-yellow-600 transition-colors`}
+                                    onClick={nextStep}
+                                    className={`${currentStep === 1 ? "w-full" : "flex-1"} py-3 bg-[#C58B2B] text-white font-semibold rounded-lg hover:bg-yellow-600 transition-colors`}
                                 >
                                     Suivant
                                 </button>
                             ) : (
                                 <button
                                     type="submit"
-                                    className="flex-1 py-3 bg-kora-gold text-kora-dark font-semibold rounded-lg hover:bg-yellow-600 transition-colors"
+                                    disabled={isLoading}
+                                    className="flex-1 py-3 bg-[#C58B2B] text-white font-semibold rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Créer mon compte
+                                    {isLoading ? "Création..." : "Créer mon compte"}
                                 </button>
                             )}
                         </div>
                     </form>
 
                     {/* Login Link */}
-                    <p className="mt-8 text-center text-gray-400">
+                    <p className="mt-8 text-center text-gray-500">
                         Déjà un compte ?{" "}
-                        <Link href="/login" className="text-kora-gold hover:text-yellow-400 font-medium transition-colors">
+                        <Link href="/login" className="text-[#C58B2B] hover:text-yellow-600 font-medium transition-colors">
                             Se connecter
                         </Link>
                     </p>
                 </div>
             </div>
 
-            {/* Right Side - Image/Pattern */}
-            <div className="hidden lg:flex flex-1 justify-center items-center bg-gradient-to-br from-kora-gold/20 to-kora-dark relative overflow-hidden">
+            {/* Right Side - Background with Logo */}
+            <div className="hidden lg:flex flex-1 bg-[#1E1E1E] relative overflow-hidden">
+                {/* Decorative circles */}
                 <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-1/4 left-1/4 w-64 h-64 border border-kora-gold rounded-full"></div>
-                    <div className="absolute top-1/2 left-1/3 w-96 h-96 border border-kora-gold rounded-full"></div>
-                    <div className="absolute bottom-1/4 left-1/2 w-64 h-64 border border-kora-gold rounded-full"></div>
+                    <div className="absolute top-1/4 left-1/4 w-64 h-64 border border-[#C58B2B] rounded-full"></div>
+                    <div className="absolute top-1/2 left-1/3 w-96 h-96 border border-[#C58B2B] rounded-full"></div>
+                    <div className="absolute bottom-1/4 left-1/2 w-64 h-64 border border-[#C58B2B] rounded-full"></div>
                 </div>
+
+                {/* Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center text-center p-12">
-                     <div className="flex bg-white p-2 items-center gap-2 mb-8">
-                        <img className="w-[150px] h-[50px]" src="/kora-logo.png" alt="Logo de Kora" />
+                    {/* KORA Logo from public folder */}
+                    <div className="w-32 h-32 mb-8">
+                        <img
+                            src="/kora-logo.png"
+                            alt="KORA Logo"
+                            className="w-full h-full object-contain"
+                        />
                     </div>
                     <h2 className="text-3xl font-bold text-white mb-4">
                         Administration

@@ -1,4 +1,5 @@
 const User = require("../models/User.model");
+const University = require("../models/University.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
@@ -14,7 +15,24 @@ exports.register = async (data) => {
 
     // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(data.motDePasse, 10);
-    
+
+    // Trouver ou créer l'université par son nom
+    let universiteId = null;
+    if (data.universite) {
+        const universityName = data.universite.trim();
+
+        // Chercher si l'université existe déjà (case insensitive)
+        let university = await University.findOne({
+            nom: { $regex: new RegExp('^' + universityName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') }
+        });
+
+        if (!university) {
+            // Créer la nouvelle université
+            university = await University.create({ nom: universityName });
+        }
+        universiteId = university._id;
+    }
+
     // Créer le nouvel utilisateur
     const newUser = await User.create({
         nom: data.nom,
@@ -23,15 +41,15 @@ exports.register = async (data) => {
         motDePasse: hashedPassword,
         role: data.role || "etudiant",
         niveau: data.niveau,
-        universite: data.universite
+        universite: universiteId
     });
 
     // Générer le token JWT
     const token = jwt.sign(
-        { 
-            userId: newUser._id, 
+        {
+            userId: newUser._id,
             email: newUser.email,
-            role: newUser.role 
+            role: newUser.role
         },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRY }
@@ -43,7 +61,8 @@ exports.register = async (data) => {
             nom: newUser.nom,
             prenom: newUser.prenom,
             email: newUser.email,
-            role: newUser.role
+            role: newUser.role,
+            universite: universiteId
         },
         token
     };
@@ -64,10 +83,10 @@ exports.login = async (email, motDePasse) => {
 
     // Générer le token JWT
     const token = jwt.sign(
-        { 
-            userId: user._id, 
+        {
+            userId: user._id,
             email: user.email,
-            role: user.role 
+            role: user.role
         },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRY }
@@ -79,7 +98,8 @@ exports.login = async (email, motDePasse) => {
             nom: user.nom,
             prenom: user.prenom,
             email: user.email,
-            role: user.role
+            role: user.role,
+            universite: user.universite
         },
         token
     };

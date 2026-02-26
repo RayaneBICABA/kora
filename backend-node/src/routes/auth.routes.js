@@ -10,7 +10,7 @@ router.post("/register", async (req, res) => {
         // Validation
         if (!nom || !prenom || !email || !motDePasse) {
             return res.status(400).json({ 
-                error: "nom, prenom, email, and motDePasse are required" 
+                error: "nom, prenom, email, et mot de passe sont requis" 
             });
         }
 
@@ -26,7 +26,7 @@ router.post("/register", async (req, res) => {
 
         res.status(201).json(result);
     } catch (err) {
-        if (err.message.includes("already registered")) {
+        if (err.message.includes("déjà enregistré")) {
             return res.status(400).json({ error: err.message });
         }
         res.status(500).json({ error: err.message });
@@ -41,7 +41,7 @@ router.post("/login", async (req, res) => {
         // Validation
         if (!email || !motDePasse) {
             return res.status(400).json({ 
-                error: "email and motDePasse are required" 
+                error: "email et mot de passe sont requis" 
             });
         }
 

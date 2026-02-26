@@ -12,5 +12,6 @@ router.use("/matieres", require("./matiere.routes"));
 router.use("/ressources", require("./ressources.routes"));
 router.use("/users", require("./user.routes"));
 router.use("/offline-downloads", require("./offlineDownload.routes"));
+router.use("/upload", require("./upload.routes"));
 
 module.exports = router;
