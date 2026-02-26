@@ -1,0 +1,656 @@
+{
+  "info": {
+    "_postman_id": "kora-api-collection",
+    "name": "KORA API Collection",
+    "description": "Collection complète des endpoints de l'API KORA",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Home",
+      "item": [
+        {
+          "name": "Welcome",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "Affiche un message de bienvenue"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Universités",
+      "item": [
+        {
+          "name": "Get All Universities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/universites",
+              "host": ["{{base_url}}"],
+              "path": ["api", "universites"]
+            },
+            "description": "Récupère toutes les universités"
+          }
+        },
+        {
+          "name": "Get University by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/universites/{{university_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "universites", "{{university_id}}"]
+            },
+            "description": "Récupère une université par ID"
+          }
+        },
+        {
+          "name": "Create University",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nom\": \"Université de Paris\",\n    \"localisation\": \"Paris\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/universites",
+              "host": ["{{base_url}}"],
+              "path": ["api", "universites"]
+            },
+            "description": "Crée une nouvelle université"
+          }
+        },
+        {
+          "name": "Update University",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nom\": \"Université de Paris-Saclay\",\n    \"localisation\": \"Paris\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/universites/{{university_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "universites", "{{university_id}}"]
+            },
+            "description": "Met à jour une université"
+          }
+        },
+        {
+          "name": "Delete University",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/universites/{{university_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "universites", "{{university_id}}"]
+            },
+            "description": "Supprime une université"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filières",
+      "item": [
+        {
+          "name": "Get All Filières",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/filieres",
+              "host": ["{{base_url}}"],
+              "path": ["api", "filieres"]
+            }
+          }
+        },
+        {
+          "name": "Get Filière by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/filieres/{{filiere_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "filieres", "{{filiere_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Filière",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nom\": \"Informatique\",\n    \"universite\": \"{{university_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/filieres",
+              "host": ["{{base_url}}"],
+              "path": ["api", "filieres"]
+            }
+          }
+        },
+        {
+          "name": "Update Filière",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nom\": \"Informatique\",\n    \"universite\": \"{{university_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/filieres/{{filiere_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "filieres", "{{filiere_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Filière",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/filieres/{{filiere_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "filieres", "{{filiere_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Niveaux",
+      "item": [
+        {
+          "name": "Get All Niveaux",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/niveaux",
+              "host": ["{{base_url}}"],
+              "path": ["api", "niveaux"]
+            }
+          }
+        },
+        {
+          "name": "Get Niveau by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/niveaux/{{niveau_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "niveaux", "{{niveau_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Niveau",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nom\": \"Licence 1\",\n    \"universite\": \"{{university_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/niveaux",
+              "host": ["{{base_url}}"],
+              "path": ["api", "niveaux"]
+            }
+          }
+        },
+        {
+          "name": "Update Niveau",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nom\": \"Licence 2\",\n    \"universite\": \"{{university_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/niveaux/{{niveau_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "niveaux", "{{niveau_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Niveau",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/niveaux/{{niveau_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "niveaux", "{{niveau_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Matières",
+      "item": [
+        {
+          "name": "Get All Matières",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/matieres",
+              "host": ["{{base_url}}"],
+              "path": ["api", "matieres"]
+            }
+          }
+        },
+        {
+          "name": "Get Matière by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/matieres/{{matiere_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "matieres", "{{matiere_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Matière",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"libelle\": \"Programmation C\",\n    \"filiere\": \"{{filiere_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/matieres",
+              "host": ["{{base_url}}"],
+              "path": ["api", "matieres"]
+            }
+          }
+        },
+        {
+          "name": "Update Matière",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"libelle\": \"Programmation Java\",\n    \"filiere\": \"{{filiere_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/matieres/{{matiere_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "matieres", "{{matiere_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Matière",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/matieres/{{matiere_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "matieres", "{{matiere_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ressources",
+      "item": [
+        {
+          "name": "Get All Ressources",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ressources",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ressources"]
+            }
+          }
+        },
+        {
+          "name": "Get Ressource by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ressources/{{ressource_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ressources", "{{ressource_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Ressource",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"titre\": \"Cours de Programmation C\",\n    \"type\": \"pdf\",\n    \"fileURL\": \"https://example.com/cours-c.pdf\",\n    \"matiere\": \"{{matiere_id}}\",\n    \"uploader\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ressources",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ressources"]
+            }
+          }
+        },
+        {
+          "name": "Update Ressource",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"titre\": \"Cours de Programmation C - Édition 2024\",\n    \"type\": \"pdf\",\n    \"fileURL\": \"https://example.com/cours-c-2024.pdf\",\n    \"matiere\": \"{{matiere_id}}\",\n    \"uploader\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ressources/{{ressource_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ressources", "{{ressource_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Ressource",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ressources/{{ressource_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ressources", "{{ressource_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Utilisateurs",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nom\": \"Dupont\",\n    \"prenom\": \"Jean\",\n    \"email\": \"jean.dupont@example.com\",\n    \"motDePasse\": \"password123\",\n    \"role\": \"etudiant\",\n    \"niveau\": \"{{niveau_id}}\",\n    \"universite\": \"{{university_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nom\": \"Dupont\",\n    \"prenom\": \"Pierre\",\n    \"email\": \"pierre.dupont@example.com\",\n    \"motDePasse\": \"newpassword123\",\n    \"role\": \"etudiant\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Téléchargements Offline",
+      "item": [
+        {
+          "name": "Get All Offline Downloads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/offline-downloads",
+              "host": ["{{base_url}}"],
+              "path": ["api", "offline-downloads"]
+            }
+          }
+        },
+        {
+          "name": "Get Offline Download by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/offline-downloads/{{offlinedownload_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "offline-downloads", "{{offlinedownload_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Offline Download",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"resourceId\": \"{{ressource_id}}\",\n    \"userId\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/offline-downloads",
+              "host": ["{{base_url}}"],
+              "path": ["api", "offline-downloads"]
+            }
+          }
+        },
+        {
+          "name": "Update Offline Download",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"resourceId\": \"{{ressource_id}}\",\n    \"userId\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/offline-downloads/{{offlinedownload_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "offline-downloads", "{{offlinedownload_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Offline Download",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/offline-downloads/{{offlinedownload_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "offline-downloads", "{{offlinedownload_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "university_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "filiere_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "niveau_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "matiere_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ressource_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "offlinedownload_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

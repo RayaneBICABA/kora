@@ -1,0 +1,34 @@
+{
+  "name": "kora",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">\r   <img src=\"https://via.placeholder.com/150/1E1E1E/C58B2B?text=KORA\" alt=\"KORA Logo\" width=\"120\">",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RayaneBICABA/kora.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/RayaneBICABA/kora/issues"
+  },
+  "homepage": "https://github.com/RayaneBICABA/kora#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.3.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.0",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
