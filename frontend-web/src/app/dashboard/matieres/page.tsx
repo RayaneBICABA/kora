@@ -172,7 +172,7 @@ export default function MatieresPage() {
         : filteredMatieres;
 
     return (
-        <div>
+        <div className="p-4 lg:p-8">
             {/* Header Banner */}
             <div className="bg-gradient-to-r from-[#C58B2B] to-[#D4A03B] rounded-2xl p-6 mb-6">
                 <h1 className="text-2xl font-bold text-white">Matières</h1>

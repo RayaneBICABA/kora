@@ -42,12 +42,9 @@ export default function DashboardLayout({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
-                <div className="flex items-center ml-3">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 2L8 8H10V16H8L12 22L16 16H14V8H16L12 2Z" fill="#C58B2B" />
-                    </svg>
-                    <span className="text-white font-bold text-xl tracking-wider ml-2">KORA</span>
-                </div>
+                 <div className="flex items-center gap-2 w-[170px] h-[50px] mb-8">
+                        <img className="w-full h-full" src="kora-logo.png" alt="Logo de kora"/>
+                    </div>
             </header>
 
             {/* Sidebar Overlay - Mobile */}
@@ -58,22 +55,16 @@ export default function DashboardLayout({
                 />
             )}
 
-            {/* Sidebar - Charcoal/Anthracite */}
+            {/* Sidebar */}
             <aside className={`
-                w-64 bg-[#1E1E1E] flex flex-col fixed h-full z-50
+                w-64 bg-[#1E1E1E] rounded-tr-[20px] rounded-br-[20px] flex flex-col fixed h-full z-50
                 transform transition-transform duration-300 ease-in-out
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
             }`}>
                 {/* Logo - Hidden on mobile, visible on large screens */}
                 <div className="p-6 hidden lg:block">
-                    <div className="flex flex-col items-center">
-                        {/* Stylized K icon above the O */}
-                        <div className="mb-2">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                                <path d="M12 2L8 8H10V16H8L12 22L16 16H14V8H16L12 2Z" fill="#C58B2B" />
-                            </svg>
-                        </div>
-                        <span className="text-white font-bold text-2xl tracking-wider">KORA</span>
+                     <div className="flex items-center gap-2 w-[170px] h-[50px] mb-8">
+                        <img className="w-full h-full" src="kora-logo-blanc.png" alt="Logo de kora"/>
                     </div>
                 </div>
 
@@ -187,7 +178,7 @@ export default function DashboardLayout({
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 lg:ml-64 pt-16 lg:pt-0">
+            <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 bg-white">
                 {children}
             </main>
         </div>

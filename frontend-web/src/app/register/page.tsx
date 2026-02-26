@@ -101,11 +101,8 @@ export default function RegisterPage() {
             <div className="flex-1 flex items-center justify-center p-8 bg-white">
                 <div className="w-full max-w-md">
                     {/* Logo */}
-                    <div className="flex items-center gap-2 mb-8">
-                        <div className="w-12 h-12 bg-[#C58B2B] rounded-xl flex items-center justify-center">
-                            <span className="text-white font-bold text-2xl">K</span>
-                        </div>
-                        <span className="text-[#1E1E1E] font-bold text-2xl">KORA</span>
+                     <div className="flex items-center gap-2 w-[170px] h-[50px] mb-8">
+                        <img className="w-full h-full" src="kora-logo.png" alt="Logo de kora"/>
                     </div>
 
                     {/* Heading */}
@@ -173,7 +170,7 @@ export default function RegisterPage() {
                                             required
                                             value={formData.prenom}
                                             onChange={handleChange}
-                                            placeholder="John"
+                                            placeholder="Yohanne"
                                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#C58B2B] focus:border-transparent focus:outline-none transition-all"
                                         />
                                     </div>
@@ -188,7 +185,7 @@ export default function RegisterPage() {
                                             required
                                             value={formData.nom}
                                             onChange={handleChange}
-                                            placeholder="Doe"
+                                            placeholder="Nana"
                                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#C58B2B] focus:border-transparent focus:outline-none transition-all"
                                         />
                                     </div>
@@ -205,7 +202,7 @@ export default function RegisterPage() {
                                         required
                                         value={formData.email}
                                         onChange={handleChange}
-                                        placeholder="john.doe@university.edu"
+                                        placeholder="nanayoha@university.edu"
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#C58B2B] focus:border-transparent focus:outline-none transition-all"
                                     />
                                     <p className="text-xs text-gray-500 mt-1">
@@ -239,7 +236,7 @@ export default function RegisterPage() {
                                         required
                                         value={formData.universite}
                                         onChange={handleChange}
-                                        placeholder="Université de Ouagadougou"
+                                        placeholder="Nom de l'université ( En toute lettre )"
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#C58B2B] focus:border-transparent focus:outline-none transition-all"
                                     />
                                     <p className="mt-1 text-xs text-gray-500">
@@ -383,7 +380,7 @@ export default function RegisterPage() {
                 {/* Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center text-center p-12">
                     {/* KORA Logo from public folder */}
-                    <div className="w-32 h-32 mb-8">
+                    <div className="w-[170px] h-[50px] mb-8 p-2 bg-white rounded">
                         <img
                             src="/kora-logo.png"
                             alt="KORA Logo"

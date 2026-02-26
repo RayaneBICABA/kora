@@ -285,11 +285,11 @@ export default function RessourcesPage() {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
                     <div className="hidden md:grid md:grid-cols-12 gap-4 px-4 py-3 border-b bg-gray-50 text-sm font-medium text-gray-500">
                         <div className="col-span-1">Fichier</div>
-                        <div className="col-span-4">Cours</div>
+                        <div className="col-span-3">Cours</div>
                         <div className="col-span-3">Université</div>
-                        <div className="col-span-2 text-center">Télécharg.</div>
+                        <div className="col-span-1 text-center">Télécharg.</div>
                         <div className="col-span-1">Date</div>
-                        <div className="col-span-1 text-right">Action</div>
+                        <div className="col-span-2 text-right">Action</div>
                     </div>
 
                     {filteredResources.length === 0 ? (
@@ -312,7 +312,7 @@ export default function RessourcesPage() {
                                         </div>
                                     </div>
 
-                                    <div className="md:col-span-4">
+                                    <div className="md:col-span-3">
                                         <span className="md:hidden font-medium text-gray-500 text-sm">Cours: </span>
                                         <h3 className="text-sm font-semibold text-gray-900">
                                             {resource.titre}
@@ -329,7 +329,7 @@ export default function RessourcesPage() {
                                         </span>
                                     </div>
 
-                                    <div className="md:col-span-2 flex items-center gap-1 text-gray-600 md:justify-center">
+                                    <div className="md:col-span-1 flex items-center gap-1 text-gray-600 md:justify-center">
                                         <svg className="w-4 h-4 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                         </svg>
@@ -343,7 +343,7 @@ export default function RessourcesPage() {
                                         </span>
                                     </div>
 
-                                    <div className="md:col-span-1 text-right flex items-center justify-end gap-2">
+                                    <div className="md:col-span-2 text-right flex items-center justify-end gap-2">
                                         <button
                                             onClick={() => handleDownload(resource)}
                                             className="px-3 py-1.5 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600 transition-colors inline-flex items-center gap-1"
@@ -351,7 +351,7 @@ export default function RessourcesPage() {
                                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                             </svg>
-                                            <span className="hidden md:inline">Téléch.</span>
+                                            <span className="hidden md:inline">Télécharger</span>
                                         </button>
                                         <button
                                             onClick={() => handleDelete(resource._id)}
@@ -371,7 +371,7 @@ export default function RessourcesPage() {
 
             {filteredResources.length > 0 && (
                 <div className="mt-6 text-center">
-                    <button className="px-6 py-2.5 border border-gray-200 text-gray-600 font-medium rounded-lg hover:border-[#C58B2B] hover:text-[#C58B2B] transition-colors">
+                    <button className="px-6 cursor-pointer py-2.5 border border-gray-200 text-gray-600 font-medium rounded-lg hover:border-[#C58B2B] hover:text-[#C58B2B] transition-colors">
                         Charger plus de ressources
                     </button>
                 </div>
