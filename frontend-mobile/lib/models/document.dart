@@ -8,7 +8,6 @@ enum DocumentType {
 
 /// Modèle de données pour un document académique
 class Document {
-
   Document({
     required this.id,
     required this.title,
@@ -20,17 +19,18 @@ class Document {
     this.downloadedAt,
     this.fileSize,
     this.university,
+    this.offlineRecordId,
   });
 
   /// Crée un document depuis un Map
   factory Document.fromJson(Map<String, dynamic> json) {
+    final rawType = (json['type'] ?? '').toString().toLowerCase();
+
     return Document(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      type: DocumentType.values.firstWhere(
-        (e) => e.toString() == json['type'],
-      ),
-      level: json['level'] as String,
+      id: (json['id'] ?? '').toString(),
+      title: (json['title'] ?? '').toString(),
+      type: _parseType(rawType),
+      level: (json['level'] ?? '').toString(),
       filiere: json['filiere'] as String?,
       filePath: json['filePath'] as String?,
       isDownloaded: json['isDownloaded'] as bool? ?? false,
@@ -39,9 +39,43 @@ class Document {
           : null,
       fileSize: json['fileSize'] as int?,
       university: json['university'] as String?,
-      
+      offlineRecordId: json['offlineRecordId'] as String?,
     );
   }
+  factory Document.fromBackendResource(
+    Map<String, dynamic> json, {
+    String? offlineRecordId,
+    DateTime? downloadedAt,
+    bool isDownloaded = false,
+  }) {
+    final matiere = json['matiere'];
+    final filiereMap =
+        matiere is Map<String, dynamic> ? matiere['filiere'] : null;
+    final niveauMap =
+        matiere is Map<String, dynamic> ? matiere['niveau'] : null;
+    final universityMap =
+        filiereMap is Map<String, dynamic> ? filiereMap['universite'] : null;
+
+    return Document(
+      id: (json['_id'] ?? json['id'] ?? '').toString(),
+      title: (json['titre'] ?? json['title'] ?? '').toString(),
+      type: _parseType((json['type'] ?? '').toString()),
+      level: niveauMap is Map<String, dynamic>
+          ? (niveauMap['nom'] ?? '').toString()
+          : (json['level'] ?? '').toString(),
+      filiere: filiereMap is Map<String, dynamic>
+          ? (filiereMap['nom'] ?? '').toString()
+          : (json['filiere'] ?? '').toString(),
+      filePath: (json['fileURL'] ?? json['filePath'] ?? '').toString(),
+      isDownloaded: isDownloaded || (json['isDownloaded'] as bool? ?? false),
+      downloadedAt: downloadedAt,
+      university: universityMap is Map<String, dynamic>
+          ? (universityMap['nom'] ?? '').toString()
+          : null,
+      offlineRecordId: offlineRecordId,
+    );
+  }
+
   final String id;
   final String title;
   final DocumentType type;
@@ -52,7 +86,7 @@ class Document {
   final DateTime? downloadedAt;
   final int? fileSize; // Taille en bytes
   final String? university;
-  
+  final String? offlineRecordId;
 
   /// Convertit le type de document en texte lisible
   String get typeLabel {
@@ -80,7 +114,7 @@ class Document {
     DateTime? downloadedAt,
     int? fileSize,
     String? university,
-    
+    String? offlineRecordId,
   }) {
     return Document(
       id: id ?? this.id,
@@ -93,7 +127,7 @@ class Document {
       downloadedAt: downloadedAt ?? this.downloadedAt,
       fileSize: fileSize ?? this.fileSize,
       university: university ?? this.university,
-      
+      offlineRecordId: offlineRecordId ?? this.offlineRecordId,
     );
   }
 
@@ -110,6 +144,22 @@ class Document {
       'downloadedAt': downloadedAt?.toIso8601String(),
       'fileSize': fileSize,
       'university': university,
+      'offlineRecordId': offlineRecordId,
     };
+  }
+
+  static DocumentType _parseType(String value) {
+    switch (value.toLowerCase()) {
+      case 'examen':
+        return DocumentType.examen;
+      case 'td':
+        return DocumentType.td;
+      case 'corrige':
+      case 'corrigé':
+        return DocumentType.corrige;
+      case 'cours':
+      default:
+        return DocumentType.cours;
+    }
   }
 }

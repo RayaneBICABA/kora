@@ -1,6 +1,5 @@
 /// Modèle de données pour un utilisateur de KORA
 class User {
-
   User({
     required this.id,
     required this.name,
@@ -12,16 +11,39 @@ class User {
 
   /// Crée un utilisateur depuis un Map
   factory User.fromJson(Map<String, dynamic> json) {
+    final firstName = (json['prenom'] ?? '').toString();
+    final lastName = (json['nom'] ?? '').toString();
+    final fallbackName = '$firstName $lastName'.trim();
+    final universityField = json['university'] ?? json['universite'];
+    final universityName = universityField is Map<String, dynamic>
+        ? (universityField['nom'] ?? '').toString()
+        : (universityField ?? '').toString();
+
     return User(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      email: json['email'] as String,
-      university: json['university'] as String,
-      profileImageUrl: json['profileImageUrl'] as String,
+      id: (json['id'] ?? json['_id'] ?? '').toString(),
+      name: (json['name'] ?? fallbackName).toString(),
+      email: (json['email'] ?? '').toString(),
+      university: universityName,
+      profileImageUrl: (json['profileImageUrl'] ?? '').toString(),
       downloadedDocumentsCount: (json['downloadedDocumentsCount'] is int)
           ? json['downloadedDocumentsCount'] as int
-          : int.tryParse(json['downloadedDocumentsCount']?.toString() ?? '0') ?? 0,
+          : int.tryParse(json['downloadedDocumentsCount']?.toString() ?? '0') ??
+              0,
     );
+  }
+
+  factory User.fromBackend(Map<String, dynamic>? json) {
+    if (json == null) {
+      return User(
+        id: '',
+        name: '',
+        email: '',
+        university: '',
+        profileImageUrl: '',
+      );
+    }
+
+    return User.fromJson(json);
   }
   final String id;
   final String name;
@@ -59,7 +81,6 @@ class User {
       'university': university,
       'profileImageUrl': profileImageUrl,
       'downloadedDocumentsCount': downloadedDocumentsCount,
-      
     };
   }
 }
