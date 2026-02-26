@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/config/colors.dart';
 import '../../core/config/document_card.dart';
 import '../../core/config/kora_icons.dart';
 import '../../core/config/text_styles.dart';
+import '../../core/network/resource_api_service.dart';
+import '../../core/network/session_manager.dart';
 import '../../models/document.dart';
+import '../../models/user.dart';
 
 /// Écran de recherche et exploration des documents
 class ExplorerScreen extends StatefulWidget {
@@ -19,6 +24,9 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
   String? _selectedType;
   String? _selectedLevel;
   String? _selectedFiliere;
+  bool _isLoading = true;
+  String? _errorMessage;
+  User? _currentUser;
 
   final List<String> _types = [
     'Tous',
@@ -29,40 +37,43 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
   ];
   final List<String> _levels = ['Tous', 'L1', 'L2', 'L3', 'M1', 'M2'];
   // ignore: unused_field
-  final List<String> _filiere = ['Tous', 'Informatique', 'Mécanique', 'Electicité'];
-
-  // Documents simulés
-  final List<Document> _allDocuments = [
-    Document(
-      id: '1',
-      title: 'Cours de Programmation Java',
-      type: DocumentType.cours,
-      level: 'L1',
-      filiere: 'Informatique',
-    ),
-    Document(
-      id: '2',
-      title: 'Examen de Programmation Java',
-      type: DocumentType.examen,
-      level: 'L1',
-      filiere: 'Informatique',
-    ),
-    Document(
-      id: '4',
-      title: 'TD Data Analysis',
-      type: DocumentType.td,
-      level: 'L1',
-      filiere: 'Informatique',
-    ),
-    Document(
-      id: '5',
-      title: 'Corrigé Linear Algebra',
-      type: DocumentType.corrige,
-      level: 'L1',
-      filiere: 'Informatique',
-    ),
+  final List<String> _filiere = [
+    'Tous',
+    'Informatique',
+    'Mécanique',
+    'Electicité'
   ];
-  
+
+  List<Document> _allDocuments = <Document>[];
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadData());
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final user = await SessionManager.getUser();
+      final resources = await ResourceApiService.getResources();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _currentUser = user;
+        _allDocuments = resources;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _errorMessage = ResourceApiService.parseError(error);
+        _isLoading = false;
+      });
+    }
+  }
 
   List<Document> get _filteredDocuments {
     return _allDocuments.where((doc) {
@@ -198,21 +209,32 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
 
           // Liste des documents filtrés
           Expanded(
-            child: _filteredDocuments.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.all(20),
-                    itemCount: _filteredDocuments.length,
-                    itemBuilder: (context, index) {
-                      return DocumentCard(
-                        document: _filteredDocuments[index],
-                        onDownload: () =>
-                            _handleDownload(_filteredDocuments[index]),
-                        onTap: () =>
-                            _handleDocumentTap(_filteredDocuments[index]),
-                      );
-                    },
-                  ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage != null
+                    ? Center(
+                        child: Text(
+                          _errorMessage!,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.error,
+                          ),
+                        ),
+                      )
+                    : _filteredDocuments.isEmpty
+                        ? _buildEmptyState()
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(20),
+                            itemCount: _filteredDocuments.length,
+                            itemBuilder: (context, index) {
+                              return DocumentCard(
+                                document: _filteredDocuments[index],
+                                onDownload: () =>
+                                    _handleDownload(_filteredDocuments[index]),
+                                onTap: () => _handleDocumentTap(
+                                    _filteredDocuments[index]),
+                              );
+                            },
+                          ),
           ),
         ],
       ),
@@ -376,12 +398,45 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
 
   /// Gère le téléchargement d'un document
   void _handleDownload(Document document) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Téléchargement de "${document.title}"...'),
-        backgroundColor: AppColors.primaryGold,
-        behavior: SnackBarBehavior.floating,
-      ),
+    final user = _currentUser;
+    if (user == null || user.id.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Session invalide, veuillez vous reconnecter.'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    unawaited(
+      ResourceApiService.markAsDownloaded(
+        resourceId: document.id,
+        user: user,
+      ).then((_) {
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('"${document.title}" ajouté en offline.'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }).catchError((Object error) {
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(ResourceApiService.parseError(error)),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }),
     );
   }
 

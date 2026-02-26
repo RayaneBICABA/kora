@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/config/colors.dart';
 import '../../core/config/document_card.dart';
 import '../../core/config/kora_icons.dart';
 import '../../core/config/text_styles.dart';
+import '../../core/network/resource_api_service.dart';
+import '../../core/network/user_api_service.dart';
 import '../../models/document.dart';
 import '../../models/user.dart';
 
@@ -17,47 +21,41 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  bool _isLoading = true;
+  String? _errorMessage;
+  User? _currentUser;
+  List<Document> _recentDocuments = <Document>[];
 
-  // Utilisateur simulé
-  final User _currentUser = User(
-    id: '1',
-    name: 'BICABA Hermine',
-    email: 'hermine@example.com',
-    university: 'Université BIT (Burkina Institute of Technology)',
-    downloadedDocumentsCount: 14, profileImageUrl: '',
-  );
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadData());
+  }
 
-  // Documents récents simulés
-  final List<Document> _recentDocuments = [
-    Document(
-      id: '1',
-      title: 'Cours de Programmation Java',
-      type: DocumentType.cours,
-      level: 'L1',
-      filiere: 'Informatique',
-    ),
-    Document(
-      id: '2',
-      title: 'Examen de Programmation Java',
-      type: DocumentType.examen,
-      level: 'L1',
-      filiere: 'Informatique',
-    ),
-    Document(
-      id: '4',
-      title: 'TD Data Analysis',
-      type: DocumentType.td,
-      level: 'L1',
-      filiere: 'Informatique',
-    ),
-    Document(
-      id: '5',
-      title: 'Corrigé Linear Algebra',
-      type: DocumentType.corrige,
-      level: 'L1',
-      filiere: 'Informatique',
-    ),
-  ];
+  Future<void> _loadData() async {
+    try {
+      final user = await UserApiService.refreshCurrentUser();
+      final resources = await ResourceApiService.getResources();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _currentUser = user;
+        _recentDocuments = resources.take(4).toList();
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isLoading = false;
+        _errorMessage = ResourceApiService.parseError(error);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,11 +87,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 16),
 
                 // Liste des documents
-                ..._recentDocuments.map((doc) => DocumentCard(
+                if (_isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else if (_errorMessage != null)
+                  Text(
+                    _errorMessage!,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.error,
+                    ),
+                  )
+                else if (_recentDocuments.isEmpty)
+                  const Text('Aucune ressource disponible pour le moment.')
+                else
+                  ..._recentDocuments.map(
+                    (doc) => DocumentCard(
                       document: doc,
                       onDownload: () => _handleDownload(doc),
                       onTap: () => _handleDocumentTap(doc),
-                    ),),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -107,15 +119,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHeader() {
     return Row(
       children: [
-        
-
         // Informations utilisateur
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _currentUser.name,
+                _currentUser?.name.isNotEmpty ?? false
+                    ? _currentUser!.name
+                    : 'Utilisateur',
                 style: AppTextStyles.h4,
               ),
               Text(
@@ -162,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Bienvenue sur l'espace B.I.T",
+                  "Bienvenue sur l'espace KORA",
                   style: AppTextStyles.h4.copyWith(
                     color: AppColors.textLight,
                     fontWeight: FontWeight.bold,
@@ -305,12 +317,45 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Gère le téléchargement d'un document
   void _handleDownload(Document document) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Téléchargement de "${document.title}"...'),
-        backgroundColor: AppColors.primaryGold,
-        behavior: SnackBarBehavior.floating,
-      ),
+    final user = _currentUser;
+    if (user == null || user.id.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Session invalide, veuillez vous reconnecter.'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    unawaited(
+      ResourceApiService.markAsDownloaded(
+        resourceId: document.id,
+        user: user,
+      ).then((_) {
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('"${document.title}" ajouté en offline.'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }).catchError((Object error) {
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(ResourceApiService.parseError(error)),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }),
     );
   }
 

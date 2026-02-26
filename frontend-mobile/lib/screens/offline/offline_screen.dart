@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/config/colors.dart';
 import '../../core/config/document_card.dart';
 import '../../core/config/kora_icons.dart';
 import '../../core/config/text_styles.dart';
+import '../../core/network/resource_api_service.dart';
+import '../../core/network/session_manager.dart';
 import '../../models/document.dart';
 
 /// Écran affichant les documents téléchargés disponibles hors ligne
@@ -15,45 +19,42 @@ class OfflineScreen extends StatefulWidget {
 }
 
 class _OfflineScreenState extends State<OfflineScreen> {
-  // Documents téléchargés simulés
-  final List<Document> _offlineDocuments = [
-    Document(
-      id: '1',
-      title: 'Cours de Programmation R',
-      type: DocumentType.cours,
-      level: 'L3',
-      filiere: 'Informatique',
-      isDownloaded: true,
-      downloadedAt: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-    Document(
-      id: '2',
-      title: 'Examen de Programmation Python',
-      type: DocumentType.examen,
-      level: 'L3',
-      filiere: 'Informatique',
-      isDownloaded: true,
-      downloadedAt: DateTime.now().subtract(const Duration(days: 5)),
-    ),
-    Document(
-      id: '3',
-      title: 'Cours de Programmation Java',
-      type: DocumentType.cours,
-      level: 'L1',
-      filiere: 'Informatique',
-      isDownloaded: true,
-      downloadedAt: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-    Document(
-      id: '4',
-      title: 'Examen de Programmation Java',
-      type: DocumentType.examen,
-      level: 'L2',
-      filiere: 'Informatique',
-      isDownloaded: true,
-      downloadedAt: DateTime.now().subtract(const Duration(hours: 12)),
-    ),
-  ];
+  List<Document> _offlineDocuments = <Document>[];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadOfflineDocuments());
+  }
+
+  Future<void> _loadOfflineDocuments() async {
+    try {
+      final user = await SessionManager.getUser();
+      if (user == null || user.id.isEmpty) {
+        throw Exception('Session utilisateur introuvable.');
+      }
+
+      final data = await ResourceApiService.getOfflineDocumentsForUser(user.id);
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _offlineDocuments = data;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isLoading = false;
+        _errorMessage = ResourceApiService.parseError(error);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,20 +89,32 @@ class _OfflineScreenState extends State<OfflineScreen> {
 
             // Liste des documents
             Expanded(
-              child: _offlineDocuments.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: _offlineDocuments.length,
-                      itemBuilder: (context, index) {
-                        return DocumentCard(
-                          document: _offlineDocuments[index],
-                          onTap: () =>
-                              _handleDocumentTap(_offlineDocuments[index]),
-                          showDownloadButton: false,
-                        );
-                      },
-                    ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _errorMessage != null
+                      ? Center(
+                          child: Text(
+                            _errorMessage!,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.error,
+                            ),
+                          ),
+                        )
+                      : _offlineDocuments.isEmpty
+                          ? _buildEmptyState()
+                          : ListView.builder(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              itemCount: _offlineDocuments.length,
+                              itemBuilder: (context, index) {
+                                return DocumentCard(
+                                  document: _offlineDocuments[index],
+                                  onTap: () => _handleDocumentTap(
+                                      _offlineDocuments[index]),
+                                  showDownloadButton: false,
+                                );
+                              },
+                            ),
             ),
           ],
         ),
@@ -260,17 +273,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
           ),
           TextButton(
             onPressed: () {
-              setState(() {
-                _offlineDocuments.removeWhere((doc) => doc.id == document.id);
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Document supprimé'),
-                  backgroundColor: AppColors.success,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              unawaited(_deleteOfflineDocument(document));
             },
             child: const Text(
               'Supprimer',
@@ -280,6 +283,44 @@ class _OfflineScreenState extends State<OfflineScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _deleteOfflineDocument(Document document) async {
+    try {
+      if (document.offlineRecordId == null ||
+          document.offlineRecordId!.isEmpty) {
+        throw Exception('Identifiant offline manquant.');
+      }
+      await ResourceApiService.removeOfflineRecord(document.offlineRecordId!);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _offlineDocuments.removeWhere(
+          (doc) => doc.offlineRecordId == document.offlineRecordId,
+        );
+      });
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Document supprimé'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(ResourceApiService.parseError(error)),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   /// Formate une date

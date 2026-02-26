@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../core/config/colors.dart';
 import '../../core/config/kora_icons.dart';
 import '../../core/config/text_styles.dart';
 import '../../core/config/widgets.dart';
+import '../../core/network/session_manager.dart';
+import '../../core/network/user_api_service.dart';
 import '../../models/user.dart';
 
 /// Écran de profil utilisateur
@@ -14,14 +18,36 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Utilisateur simulé
-  final User _currentUser = User(
-    id: '1',
-    name:'BICABA Hermine',
-    email: 'hermine@example.com',
-    university: 'Université BIT (Burkina Institute of Technology)',
-    downloadedDocumentsCount: 14, profileImageUrl: '',
+  User _currentUser = User(
+    id: '',
+    name: 'Utilisateur',
+    email: '',
+    university: '',
+    profileImageUrl: '',
   );
+  String? _profileImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadProfile());
+  }
+
+  Future<void> _loadProfile() async {
+    final user = await UserApiService.refreshCurrentUser();
+    final profileImageUrl = await SessionManager.getProfileImageUrl();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      if (user != null) {
+        _currentUser = user;
+      }
+      _profileImageUrl = profileImageUrl;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,15 +153,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       child: ClipOval(
-        child: ColoredBox(
-          color: Colors.grey.shade200,
-          child: Icon(
-            Icons.person,
-            size: 60,
-            color: Colors.grey.shade400,
-          ),
-        ),
+        child: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+            ? Image.network(
+                _profileImageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildAvatarFallback(),
+              )
+            : _buildAvatarFallback(),
       ),
+    );
+  }
+
+  Widget _buildAvatarFallback() {
+    return ColoredBox(
+      color: Colors.grey.shade200,
+      child: Icon(
+        Icons.person,
+        size: 60,
+        color: Colors.grey.shade400,
+      ),
+    );
+  }
+
+  Future<void> _performLogout() async {
+    await SessionManager.clear();
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/login',
+      (route) => false,
     );
   }
 
@@ -223,10 +272,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                '/login',
-                (route) => false,
-              );
+              unawaited(_performLogout());
             },
             child: const Text(
               'Déconnexion',
