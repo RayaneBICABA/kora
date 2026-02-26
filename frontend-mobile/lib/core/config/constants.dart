@@ -58,5 +58,5 @@ class AppConstants {
       'Problème de connexion. Vérifiez votre connexion internet.';
   static const String errorServerMessage =
       'Erreur serveur. Veuillez réessayer plus tard.';
-  static const String errorUnknownMessage = 'Une erreur inattendue s\'est produite.';
+  static const String errorUnknownMessage = "Une erreur inattendue s'est produite.";
 }

@@ -1,186 +1,109 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart';
 import 'colors.dart';
+import 'text_styles.dart';
 
-/// Configuration du thème KORA
-class KoraTheme {
-  KoraTheme._();
+/// Thème de l'application KORA
+class AppTheme {
+  AppTheme._();
 
-  /// Thème clair (principal)
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.light(
-        primary: KoraColors.gold,
-        onPrimary: KoraColors.white,
-        secondary: KoraColors.dark,
-        onSecondary: KoraColors.white,
-        error: KoraColors.error,
-        surface: KoraColors.white,
-        onSurface: KoraColors.textPrimary,
+      
+      // Couleurs principales
+      primaryColor: AppColors.primaryGold,
+      scaffoldBackgroundColor: AppColors.white,
+      
+      // ColorScheme
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.primaryGold,
+        secondary: AppColors.darkBackground,
+        error: AppColors.error,
+        onSecondary: AppColors.textLight,
+        onSurface: AppColors.textDark,
       ),
       
-      // Typographie
-      textTheme: _buildTextTheme(),
-      
       // AppBar
-      appBarTheme: AppBarTheme(
-        backgroundColor: KoraColors.dark,
-        foregroundColor: KoraColors.white,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.white,
+        foregroundColor: AppColors.textDark,
         elevation: 0,
-        centerTitle: true,
-        titleTextStyle: GoogleFonts.poppins(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: KoraColors.white,
-        ),
+        centerTitle: false,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        titleTextStyle: AppTextStyles.h3,
+      ),
+      
+      // Bottom Navigation Bar
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: AppColors.white,
+        selectedItemColor: AppColors.primaryGold,
+        unselectedItemColor: AppColors.iconGray,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
       ),
       
       // Boutons
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: KoraColors.gold,
-          foregroundColor: KoraColors.white,
-          elevation: 2,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          backgroundColor: AppColors.darkBackground,
+          foregroundColor: AppColors.textLight,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(30),
           ),
-          textStyle: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: AppTextStyles.button,
+          elevation: 0,
         ),
       ),
       
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: KoraColors.gold,
-          side: const BorderSide(color: KoraColors.gold, width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          textStyle: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      
-      // Input fields
+      // Text fields
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: KoraColors.greyLight.withOpacity(0.1),
+        fillColor: AppColors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: KoraColors.greyLight),
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: AppColors.mediumGray),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: KoraColors.greyLight),
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: AppColors.mediumGray),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: KoraColors.gold, width: 2),
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: AppColors.primaryGold, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: KoraColors.error),
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: AppColors.error),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        labelStyle: GoogleFonts.poppins(
-          color: KoraColors.textSecondary,
-        ),
+        hintStyle: AppTextStyles.inputLabel.copyWith(color: AppColors.textGray),
+        labelStyle: AppTextStyles.inputLabel,
       ),
       
-      //card
+      // Cards
       
-      // Scaffold
-      scaffoldBackgroundColor: KoraColors.white,
-    );
-  }
-
-  /// Thème sombre (futur)
-  static ThemeData get darkTheme {
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.dark(
-        primary: KoraColors.gold,
-        onPrimary: KoraColors.dark,
-        secondary: KoraColors.goldLight,
-        surface: KoraColors.dark,
-        onSurface: KoraColors.white,
+      // Typography
+      textTheme: const TextTheme(
+        displayLarge: AppTextStyles.h1,
+        displayMedium: AppTextStyles.h2,
+        displaySmall: AppTextStyles.h3,
+        headlineMedium: AppTextStyles.h4,
+        bodyLarge: AppTextStyles.bodyLarge,
+        bodyMedium: AppTextStyles.bodyMedium,
+        bodySmall: AppTextStyles.bodySmall,
+        titleMedium: AppTextStyles.subtitle,
+        labelLarge: AppTextStyles.button,
       ),
-      textTheme: _buildTextTheme(isDark: true),
-      scaffoldBackgroundColor: KoraColors.dark,
-    );
-  }
-
-  /// Construction de la typographie
-  static TextTheme _buildTextTheme({bool isDark = false}) {
-    final Color textColor = isDark ? KoraColors.white : KoraColors.textPrimary;
-    
-    return TextTheme(
-      displayLarge: GoogleFonts.poppins(
-        fontSize: 32,
-        fontWeight: FontWeight.bold,
-        color: textColor,
-      ),
-      displayMedium: GoogleFonts.poppins(
-        fontSize: 28,
-        fontWeight: FontWeight.bold,
-        color: textColor,
-      ),
-      displaySmall: GoogleFonts.poppins(
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-      ),
-      headlineLarge: GoogleFonts.poppins(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-      ),
-      headlineMedium: GoogleFonts.poppins(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-      ),
-      headlineSmall: GoogleFonts.poppins(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-      ),
-      titleLarge: GoogleFonts.poppins(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-      ),
-      titleMedium: GoogleFonts.poppins(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: textColor,
-      ),
-      bodyLarge: GoogleFonts.roboto(
-        fontSize: 16,
-        fontWeight: FontWeight.normal,
-        color: textColor,
-      ),
-      bodyMedium: GoogleFonts.roboto(
-        fontSize: 14,
-        fontWeight: FontWeight.normal,
-        color: textColor,
-      ),
-      bodySmall: GoogleFonts.roboto(
-        fontSize: 12,
-        fontWeight: FontWeight.normal,
-        color: KoraColors.textSecondary,
-      ),
-      labelLarge: GoogleFonts.poppins(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: textColor,
+      
+      // Divider
+      dividerTheme: const DividerThemeData(
+        color: AppColors.mediumGray,
+        thickness: 1,
+        space: 1,
       ),
     );
   }
