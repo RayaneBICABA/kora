@@ -110,7 +110,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
                                 return DocumentCard(
                                   document: _offlineDocuments[index],
                                   onTap: () => _handleDocumentTap(
-                                      _offlineDocuments[index]),
+                                      _offlineDocuments[index],),
                                   showDownloadButton: false,
                                 );
                               },

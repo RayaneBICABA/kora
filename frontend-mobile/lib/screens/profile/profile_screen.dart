@@ -23,6 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     name: 'Utilisateur',
     email: '',
     university: '',
+    universityId: '',
     profileImageUrl: '',
   );
   String? _profileImageUrl;
@@ -182,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
-    Navigator.of(context).pushNamedAndRemoveUntil(
+    await Navigator.of(context).pushNamedAndRemoveUntil(
       '/login',
       (route) => false,
     );

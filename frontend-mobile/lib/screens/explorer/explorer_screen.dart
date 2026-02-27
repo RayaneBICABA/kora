@@ -6,8 +6,9 @@ import '../../core/config/colors.dart';
 import '../../core/config/document_card.dart';
 import '../../core/config/kora_icons.dart';
 import '../../core/config/text_styles.dart';
+import '../../core/network/catalog_api_service.dart';
 import '../../core/network/resource_api_service.dart';
-import '../../core/network/session_manager.dart';
+import '../../core/network/user_api_service.dart';
 import '../../models/document.dart';
 import '../../models/user.dart';
 
@@ -24,6 +25,7 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
   String? _selectedType;
   String? _selectedLevel;
   String? _selectedFiliere;
+  String? _selectedMatiere;
   bool _isLoading = true;
   String? _errorMessage;
   User? _currentUser;
@@ -35,14 +37,9 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
     'TD',
     'Corrigé',
   ];
-  final List<String> _levels = ['Tous', 'L1', 'L2', 'L3', 'M1', 'M2'];
-  // ignore: unused_field
-  final List<String> _filiere = [
-    'Tous',
-    'Informatique',
-    'Mécanique',
-    'Electicité'
-  ];
+  List<String> _levels = <String>['Tous'];
+  List<String> _filieres = <String>['Tous'];
+  List<String> _matieres = <String>['Tous'];
 
   List<Document> _allDocuments = <Document>[];
 
@@ -54,14 +51,54 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
 
   Future<void> _loadData() async {
     try {
-      final user = await SessionManager.getUser();
+      final user = await UserApiService.refreshCurrentUser();
+      if (user == null || user.id.isEmpty) {
+        throw Exception('Session invalide. Veuillez vous reconnecter.');
+      }
+
       final resources = await ResourceApiService.getResources();
+
+      UniversityCatalog? catalog;
+      if (user.universityId.isNotEmpty) {
+        catalog = await CatalogApiService.getUniversityCatalog(
+          universityId: user.universityId,
+        );
+      }
+
+      final filteredResources = resources.where((doc) {
+        if (user.university.isEmpty) {
+          return true;
+        }
+
+        final docUniversity = (doc.university ?? '').trim().toLowerCase();
+        final userUniversity = user.university.trim().toLowerCase();
+
+        if (docUniversity.isEmpty) {
+          return true;
+        }
+
+        return docUniversity == userUniversity;
+      }).toList();
+
       if (!mounted) {
         return;
       }
+
       setState(() {
         _currentUser = user;
-        _allDocuments = resources;
+        _allDocuments = filteredResources;
+        _filieres = <String>[
+          'Tous',
+          ...?catalog?.filieres.map((item) => item.name),
+        ];
+        _levels = <String>[
+          'Tous',
+          ...?catalog?.niveaux.map((item) => item.name),
+        ];
+        _matieres = <String>[
+          'Tous',
+          ...?catalog?.matieres.map((item) => item.name),
+        ];
         _isLoading = false;
       });
     } catch (error) {
@@ -69,7 +106,7 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
         return;
       }
       setState(() {
-        _errorMessage = ResourceApiService.parseError(error);
+        _errorMessage = CatalogApiService.parseError(error);
         _isLoading = false;
       });
     }
@@ -77,7 +114,6 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
 
   List<Document> get _filteredDocuments {
     return _allDocuments.where((doc) {
-      // Filtre par recherche
       if (_searchController.text.isNotEmpty &&
           !doc.title
               .toLowerCase()
@@ -85,23 +121,28 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
         return false;
       }
 
-      // Filtre par type
       if (_selectedType != null && _selectedType != 'Tous') {
         if (doc.typeLabel.toLowerCase() != _selectedType!.toLowerCase()) {
           return false;
         }
       }
 
-      // Filtre par niveau
       if (_selectedLevel != null && _selectedLevel != 'Tous') {
-        if (!doc.level.contains(_selectedLevel!)) {
+        if (!doc.level.toLowerCase().contains(_selectedLevel!.toLowerCase())) {
           return false;
         }
       }
 
-      // Filtre par filiere
       if (_selectedFiliere != null && _selectedFiliere != 'Tous') {
-        if (!doc.filiere!.contains(_selectedFiliere!)) {
+        final filiere = (doc.filiere ?? '').toLowerCase();
+        if (!filiere.contains(_selectedFiliere!.toLowerCase())) {
+          return false;
+        }
+      }
+
+      if (_selectedMatiere != null && _selectedMatiere != 'Tous') {
+        final subject = (doc.subject ?? '').toLowerCase();
+        if (!subject.contains(_selectedMatiere!.toLowerCase())) {
           return false;
         }
       }
@@ -135,12 +176,10 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
       ),
       body: Column(
         children: [
-          // Section de recherche et filtres
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // Barre de recherche
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
@@ -152,7 +191,7 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
                       Expanded(
                         child: TextField(
                           controller: _searchController,
-                          onChanged: (value) => setState(() {}),
+                          onChanged: (_) => setState(() {}),
                           decoration: InputDecoration(
                             hintText: "Entrer le nom d'un document",
                             hintStyle: AppTextStyles.bodyMedium.copyWith(
@@ -171,10 +210,7 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // Filtres Type et Niveau
                 Row(
                   children: [
                     Expanded(
@@ -192,22 +228,28 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 16),
-
-                // Filtre Filiere
-                _buildFilterChip(
-                  label: _selectedFiliere ?? 'Filiere',
-                  onTap: _showNiveauFilter,
-                  fullWidth: true,
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildFilterChip(
+                        label: _selectedFiliere ?? 'Filiere',
+                        onTap: _showFiliereFilter,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildFilterChip(
+                        label: _selectedMatiere ?? 'Matière',
+                        onTap: _showMatiereFilter,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-
           const Divider(height: 1),
-
-          // Liste des documents filtrés
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -231,7 +273,7 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
                                 onDownload: () =>
                                     _handleDownload(_filteredDocuments[index]),
                                 onTap: () => _handleDocumentTap(
-                                    _filteredDocuments[index]),
+                                    _filteredDocuments[index],),
                               );
                             },
                           ),
@@ -242,16 +284,13 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
     );
   }
 
-  /// Construit un chip de filtre
   Widget _buildFilterChip({
     required String label,
     required VoidCallback onTap,
-    bool fullWidth = false,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: fullWidth ? double.infinity : null,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.lightGray,
@@ -260,11 +299,15 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textDark,
-                fontWeight: FontWeight.w500,
+            Expanded(
+              child: Text(
+                label,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textDark,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             const Icon(
@@ -278,7 +321,6 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
     );
   }
 
-  /// État vide
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -309,7 +351,6 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
     );
   }
 
-  /// Affiche le filtre de type
   void _showTypeFilter() {
     _showFilterBottomSheet(
       title: 'Sélectionner un type',
@@ -323,7 +364,6 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
     );
   }
 
-  /// Affiche le filtre de niveau
   void _showLevelFilter() {
     _showFilterBottomSheet(
       title: 'Sélectionner un niveau',
@@ -337,11 +377,10 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
     );
   }
 
-  /// Affiche le filtre de niveau supplémentaire
-  void _showNiveauFilter() {
+  void _showFiliereFilter() {
     _showFilterBottomSheet(
-      title: 'Sélectionner une filiere',
-      items: _filiere,
+      title: 'Sélectionner une filière',
+      items: _filieres,
       selectedItem: _selectedFiliere,
       onSelect: (value) {
         setState(() {
@@ -351,7 +390,19 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
     );
   }
 
-  /// Bottom sheet générique pour les filtres
+  void _showMatiereFilter() {
+    _showFilterBottomSheet(
+      title: 'Sélectionner une matière',
+      items: _matieres,
+      selectedItem: _selectedMatiere,
+      onSelect: (value) {
+        setState(() {
+          _selectedMatiere = value == 'Tous' ? null : value;
+        });
+      },
+    );
+  }
+
   void _showFilterBottomSheet({
     required String title,
     required List<String> items,
@@ -359,6 +410,16 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
     required Function(String) onSelect,
     String? selectedItem,
   }) {
+    if (items.length <= 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Aucune option disponible pour ce filtre.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     // ignore: inference_failure_on_function_invocation
     showModalBottomSheet(
       context: context,
@@ -396,7 +457,6 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
     );
   }
 
-  /// Gère le téléchargement d'un document
   void _handleDownload(Document document) {
     final user = _currentUser;
     if (user == null || user.id.isEmpty) {
@@ -440,12 +500,8 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
     );
   }
 
-  /// Gère le tap sur un document
-  void _handleDocumentTap(Document document) {
-    // Navigation vers les détails du document
-  }
+  void _handleDocumentTap(Document document) {}
 
-  /// Construit la barre de navigation inférieure
   Widget _buildBottomNavigationBar() {
     return Container(
       decoration: const BoxDecoration(

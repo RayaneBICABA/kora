@@ -34,8 +34,8 @@ class _LandingPageState extends State<LandingPage>
 
     _controller.forward();
 
-    // Navigation automatique après 3 secondes
-    Timer(const Duration(seconds: 3), () {
+    // Navigation automatique après 2 secondes
+    Timer(const Duration(seconds: 2), () {
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/login');
       }
