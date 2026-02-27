@@ -38,7 +38,7 @@ class ResourceApiService {
   }
 
   static Future<List<Document>> getOfflineDocumentsForUser(
-      String userId) async {
+      String userId,) async {
     final response =
         await ApiClient.instance.get<List<dynamic>>('/offline-downloads');
     final records = response.data ?? <dynamic>[];
