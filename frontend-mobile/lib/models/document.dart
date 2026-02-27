@@ -19,6 +19,7 @@ class Document {
     this.downloadedAt,
     this.fileSize,
     this.university,
+    this.subject,
     this.offlineRecordId,
   });
 
@@ -39,6 +40,7 @@ class Document {
           : null,
       fileSize: json['fileSize'] as int?,
       university: json['university'] as String?,
+      subject: json['subject'] as String?,
       offlineRecordId: json['offlineRecordId'] as String?,
     );
   }
@@ -72,6 +74,9 @@ class Document {
       university: universityMap is Map<String, dynamic>
           ? (universityMap['nom'] ?? '').toString()
           : null,
+      subject: matiere is Map<String, dynamic>
+          ? (matiere['libelle'] ?? '').toString()
+          : null,
       offlineRecordId: offlineRecordId,
     );
   }
@@ -86,6 +91,7 @@ class Document {
   final DateTime? downloadedAt;
   final int? fileSize; // Taille en bytes
   final String? university;
+  final String? subject;
   final String? offlineRecordId;
 
   /// Convertit le type de document en texte lisible
@@ -114,6 +120,7 @@ class Document {
     DateTime? downloadedAt,
     int? fileSize,
     String? university,
+    String? subject,
     String? offlineRecordId,
   }) {
     return Document(
@@ -127,6 +134,7 @@ class Document {
       downloadedAt: downloadedAt ?? this.downloadedAt,
       fileSize: fileSize ?? this.fileSize,
       university: university ?? this.university,
+      subject: subject ?? this.subject,
       offlineRecordId: offlineRecordId ?? this.offlineRecordId,
     );
   }
@@ -144,6 +152,7 @@ class Document {
       'downloadedAt': downloadedAt?.toIso8601String(),
       'fileSize': fileSize,
       'university': university,
+      'subject': subject,
       'offlineRecordId': offlineRecordId,
     };
   }

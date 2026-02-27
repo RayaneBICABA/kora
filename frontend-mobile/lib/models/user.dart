@@ -5,6 +5,7 @@ class User {
     required this.name,
     required this.email,
     required this.university,
+    required this.universityId,
     required this.profileImageUrl,
     this.downloadedDocumentsCount = 0,
   });
@@ -15,6 +16,9 @@ class User {
     final lastName = (json['nom'] ?? '').toString();
     final fallbackName = '$firstName $lastName'.trim();
     final universityField = json['university'] ?? json['universite'];
+    final universityId = universityField is Map<String, dynamic>
+        ? (universityField['_id'] ?? '').toString()
+        : (universityField ?? '').toString();
     final universityName = universityField is Map<String, dynamic>
         ? (universityField['nom'] ?? '').toString()
         : (universityField ?? '').toString();
@@ -24,6 +28,7 @@ class User {
       name: (json['name'] ?? fallbackName).toString(),
       email: (json['email'] ?? '').toString(),
       university: universityName,
+      universityId: universityId,
       profileImageUrl: (json['profileImageUrl'] ?? '').toString(),
       downloadedDocumentsCount: (json['downloadedDocumentsCount'] is int)
           ? json['downloadedDocumentsCount'] as int
@@ -39,6 +44,7 @@ class User {
         name: '',
         email: '',
         university: '',
+        universityId: '',
         profileImageUrl: '',
       );
     }
@@ -50,6 +56,7 @@ class User {
   final String email;
   final String? profileImageUrl;
   final String university;
+  final String universityId;
   final int downloadedDocumentsCount;
 
   /// Crée une copie de l'utilisateur avec les champs modifiés
@@ -59,6 +66,7 @@ class User {
     String? email,
     String? profileImageUrl,
     String? university,
+    String? universityId,
     int? downloadedDocumentsCount,
   }) {
     return User(
@@ -66,6 +74,7 @@ class User {
       name: name ?? this.name,
       email: email ?? this.email,
       university: university ?? this.university,
+      universityId: universityId ?? this.universityId,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       downloadedDocumentsCount:
           downloadedDocumentsCount ?? this.downloadedDocumentsCount,
@@ -79,6 +88,7 @@ class User {
       'name': name,
       'email': email,
       'university': university,
+      'universityId': universityId,
       'profileImageUrl': profileImageUrl,
       'downloadedDocumentsCount': downloadedDocumentsCount,
     };
