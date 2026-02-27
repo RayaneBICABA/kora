@@ -113,7 +113,9 @@ class _SignupScreenState extends State<SignupScreen> {
       if (!mounted) return;
 
       setState(() => _isLoading = false);
-      Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+      await Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil('/login', (route) => false);
     } catch (error) {
       if (!mounted) {
         return;
@@ -154,7 +156,12 @@ class _SignupScreenState extends State<SignupScreen> {
         validator: (value) =>
             value == null || value.isEmpty ? 'Veuillez entrer votre nom' : null,
       ),
-      const SizedBox(height: 16),
+    ];
+  }
+
+  // ================= STEP 2 =================
+  List<Widget> _buildStep2() {
+    return [
       CustomTextField(
         controller: _emailController,
         hintText: 'Email',
@@ -170,12 +177,7 @@ class _SignupScreenState extends State<SignupScreen> {
           return null;
         },
       ),
-    ];
-  }
-
-  // ================= STEP 2 =================
-  List<Widget> _buildStep2() {
-    return [
+      const SizedBox(height: 16),
       CustomTextField(
         controller: _passwordController,
         hintText: 'Mot de passe',
@@ -229,80 +231,89 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildHeaderImage(),
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    IndexedStack(
-                      index: _currentStep,
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            physics: const ClampingScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                children: [
+                  _buildHeaderImage(),
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
                       children: [
-                        Form(
-                          key: _step1FormKey,
-                          child: Column(children: _buildStep1()),
+                        IndexedStack(
+                          index: _currentStep,
+                          children: [
+                            Form(
+                              key: _step1FormKey,
+                              child: Column(children: _buildStep1()),
+                            ),
+                            Form(
+                              key: _step2FormKey,
+                              child: Column(children: _buildStep2()),
+                            ),
+                          ],
                         ),
-                        Form(
-                          key: _step2FormKey,
-                          child: Column(children: _buildStep2()),
+                        const SizedBox(height: 24),
+                        if (_currentStep == 0)
+                          CustomButton(
+                            text: 'Suivant',
+                            onPressed: _goToNextStep,
+                          )
+                        else
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomButton(
+                                  text: 'Retour',
+                                  outlined: true,
+                                  onPressed: () =>
+                                      setState(() => _currentStep = 0),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: CustomButton(
+                                  text: "S'inscrire",
+                                  isLoading: _isLoading,
+                                  onPressed: _handleSignup,
+                                ),
+                              ),
+                            ],
+                          ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Vous avez déjà un compte ?',
+                              style: AppTextStyles.bodyMedium,
+                            ),
+                            const SizedBox(width: 4),
+                            GestureDetector(
+                              onTap: _navigateToLogin,
+                              child: Text(
+                                'Se connecter',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: AppColors.primaryGold,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
-                    if (_currentStep == 0)
-                      CustomButton(
-                        text: 'Suivant',
-                        onPressed: _goToNextStep,
-                      )
-                    else
-                      Row(
-                        children: [
-                          Expanded(
-                            child: CustomButton(
-                              text: 'Retour',
-                              outlined: true,
-                              onPressed: () => setState(() => _currentStep = 0),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: CustomButton(
-                              text: "S'inscrire",
-                              isLoading: _isLoading,
-                              onPressed: _handleSignup,
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Vous avez déjà un compte ?',
-                          style: AppTextStyles.bodyMedium,
-                        ),
-                        const SizedBox(width: 4),
-                        GestureDetector(
-                          onTap: _navigateToLogin,
-                          child: Text(
-                            'Se connecter',
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              color: AppColors.primaryGold,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

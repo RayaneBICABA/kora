@@ -1,11 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../../core/network/auth_api_service.dart';
+
 import '../../core/config/colors.dart';
 import '../../core/config/kora_icons.dart';
 import '../../core/config/text_styles.dart';
 import '../../core/config/widgets.dart';
+import '../../core/network/auth_api_service.dart';
 
 /// Écran de connexion de l'application KORA
 class LoginScreen extends StatefulWidget {
