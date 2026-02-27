@@ -56,14 +56,14 @@ flutter_launcher_icons:
 #Configuration du splash
 flutter_native_splash:
   color: "#C58B2B"
-  image: assets/icons/app_icon.png
+  image: assets/icons/splash_logo_badge.png
   
   #Configuration Android
   android: true
   android_12:
-    image: assets/icons/app_icon.png
+    image: assets/icons/splash_logo_badge.png
     color: "#C58B2B"
-    icon_background_color: "FFFFFF"
+    icon_background_color: "#FFFFFF"
 
   #Configuration ios
   ios: true
