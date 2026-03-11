@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../models/document.dart';
 import '../../models/user.dart';
 import 'api_client.dart';
+import 'offline_storage_service.dart';
 
 class ResourceApiService {
   ResourceApiService._();
@@ -17,65 +18,72 @@ class ResourceApiService {
         .toList();
   }
 
-  static Future<void> markAsDownloaded({
-    required String resourceId,
+  static Future<Document> markAsDownloaded({
+    required Document document,
     required User user,
   }) async {
+    final offlineDocument = await OfflineStorageService.downloadDocument(
+      document: document,
+      userId: user.id,
+      dio: ApiClient.instance,
+    );
+
     try {
       await ApiClient.instance
-          .patch<void>('/ressources/$resourceId/increment-download');
+          .patch<void>('/ressources/${document.id}/increment-download');
     } catch (_) {
       // L'incrément n'est pas bloquant pour la mise en offline côté mobile.
     }
 
-    await ApiClient.instance.post<void>(
-      '/offline-downloads',
-      data: {
-        'resourceId': resourceId,
-        'userId': user.id,
-      },
-    );
+    try {
+      await ApiClient.instance.post<void>(
+        '/offline-downloads',
+        data: {
+          'resourceId': document.id,
+          'userId': user.id,
+        },
+      );
+    } catch (_) {
+      // La synchro backend est secondaire par rapport au stockage local.
+    }
+
+    return offlineDocument;
   }
 
   static Future<List<Document>> getOfflineDocumentsForUser(
-      String userId,) async {
-    final response =
-        await ApiClient.instance.get<List<dynamic>>('/offline-downloads');
-    final records = response.data ?? <dynamic>[];
-
-    final documents = <Document>[];
-    for (final record in records.whereType<Map<String, dynamic>>()) {
-      final recordUser = record['userId'];
-      final extractedUserId = recordUser is Map<String, dynamic>
-          ? (recordUser['_id'] ?? '').toString()
-          : recordUser?.toString() ?? '';
-
-      if (extractedUserId != userId) {
-        continue;
-      }
-
-      final resource = record['resourceId'];
-      if (resource is! Map<String, dynamic>) {
-        continue;
-      }
-
-      documents.add(
-        Document.fromBackendResource(
-          resource,
-          offlineRecordId: (record['_id'] ?? '').toString(),
-          downloadedAt:
-              DateTime.tryParse((record['dataSynchro'] ?? '').toString()),
-          isDownloaded: true,
-        ),
-      );
-    }
-
-    return documents;
+    String userId,
+  ) async {
+    return OfflineStorageService.getOfflineDocuments(userId);
   }
 
-  static Future<void> removeOfflineRecord(String offlineRecordId) async {
-    await ApiClient.instance
-        .delete<void>('/offline-downloads/$offlineRecordId');
+  static Future<void> removeOfflineRecord({
+    required String userId,
+    required Document document,
+  }) async {
+    await OfflineStorageService.removeOfflineDocument(
+      userId: userId,
+      document: document,
+    );
+
+    final offlineRecordId = document.offlineRecordId;
+    if (offlineRecordId == null || offlineRecordId.isEmpty) {
+      return;
+    }
+
+    try {
+      await ApiClient.instance
+          .delete<void>('/offline-downloads/$offlineRecordId');
+    } catch (_) {
+      // La suppression locale a déjà réussi.
+    }
+  }
+
+  static Future<Set<String>> getOfflineDocumentIds(String userId) {
+    return OfflineStorageService.getOfflineDocumentIds(userId);
+  }
+
+  static Future<void> openOfflineDocument(Document document) {
+    return OfflineStorageService.openOfflineDocument(document);
   }
 
   static String parseError(Object error) {
