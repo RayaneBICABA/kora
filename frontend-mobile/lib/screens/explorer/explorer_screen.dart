@@ -57,6 +57,8 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
       }
 
       final resources = await ResourceApiService.getResources();
+      final offlineIds =
+          await ResourceApiService.getOfflineDocumentIds(user.id);
 
       UniversityCatalog? catalog;
       if (user.universityId.isNotEmpty) {
@@ -86,7 +88,13 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
 
       setState(() {
         _currentUser = user;
-        _allDocuments = filteredResources;
+        _allDocuments = filteredResources
+            .map(
+              (document) => document.copyWith(
+                isDownloaded: offlineIds.contains(document.id),
+              ),
+            )
+            .toList();
         _filieres = <String>[
           'Tous',
           ...?catalog?.filieres.map((item) => item.name),
@@ -273,7 +281,8 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
                                 onDownload: () =>
                                     _handleDownload(_filteredDocuments[index]),
                                 onTap: () => _handleDocumentTap(
-                                    _filteredDocuments[index],),
+                                  _filteredDocuments[index],
+                                ),
                               );
                             },
                           ),
@@ -472,12 +481,25 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
 
     unawaited(
       ResourceApiService.markAsDownloaded(
-        resourceId: document.id,
+        document: document,
         user: user,
-      ).then((_) {
+      ).then((offlineDocument) {
         if (!mounted) {
           return;
         }
+        setState(() {
+          _allDocuments = _allDocuments
+              .map(
+                (item) => item.id == document.id
+                    ? item.copyWith(
+                        isDownloaded: true,
+                        filePath: offlineDocument.filePath,
+                        downloadedAt: offlineDocument.downloadedAt,
+                      )
+                    : item,
+              )
+              .toList();
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('"${document.title}" ajouté en offline.'),

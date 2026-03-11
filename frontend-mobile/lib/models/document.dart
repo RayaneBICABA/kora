@@ -144,7 +144,7 @@ class Document {
     return {
       'id': id,
       'title': title,
-      'type': type.toString(),
+      'type': type.name,
       'level': level,
       'filiere': filiere,
       'filePath': filePath,

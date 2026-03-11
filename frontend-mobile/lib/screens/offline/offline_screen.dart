@@ -110,7 +110,8 @@ class _OfflineScreenState extends State<OfflineScreen> {
                                 return DocumentCard(
                                   document: _offlineDocuments[index],
                                   onTap: () => _handleDocumentTap(
-                                      _offlineDocuments[index],),
+                                    _offlineDocuments[index],
+                                  ),
                                   showDownloadButton: false,
                                 );
                               },
@@ -248,7 +249,10 @@ class _OfflineScreenState extends State<OfflineScreen> {
             ),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pop(context);
+              unawaited(_openOfflineDocument(document));
+            },
             child: const Text('Ouvrir'),
           ),
         ],
@@ -287,18 +291,19 @@ class _OfflineScreenState extends State<OfflineScreen> {
 
   Future<void> _deleteOfflineDocument(Document document) async {
     try {
-      if (document.offlineRecordId == null ||
-          document.offlineRecordId!.isEmpty) {
-        throw Exception('Identifiant offline manquant.');
+      final user = await SessionManager.getUser();
+      if (user == null || user.id.isEmpty) {
+        throw Exception('Session utilisateur introuvable.');
       }
-      await ResourceApiService.removeOfflineRecord(document.offlineRecordId!);
+      await ResourceApiService.removeOfflineRecord(
+        userId: user.id,
+        document: document,
+      );
       if (!mounted) {
         return;
       }
       setState(() {
-        _offlineDocuments.removeWhere(
-          (doc) => doc.offlineRecordId == document.offlineRecordId,
-        );
+        _offlineDocuments.removeWhere((doc) => doc.id == document.id);
       });
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -313,6 +318,23 @@ class _OfflineScreenState extends State<OfflineScreen> {
         return;
       }
       Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(ResourceApiService.parseError(error)),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _openOfflineDocument(Document document) async {
+    try {
+      await ResourceApiService.openOfflineDocument(document);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(ResourceApiService.parseError(error)),

@@ -36,6 +36,9 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final user = await UserApiService.refreshCurrentUser();
       final resources = await ResourceApiService.getResources();
+      final offlineIds = user == null || user.id.isEmpty
+          ? <String>{}
+          : await ResourceApiService.getOfflineDocumentIds(user.id);
 
       if (!mounted) {
         return;
@@ -43,7 +46,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() {
         _currentUser = user;
-        _recentDocuments = resources.take(4).toList();
+        _recentDocuments = resources
+            .map(
+              (document) => document.copyWith(
+                isDownloaded: offlineIds.contains(document.id),
+              ),
+            )
+            .take(4)
+            .toList();
         _isLoading = false;
       });
     } catch (error) {
@@ -331,12 +341,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
     unawaited(
       ResourceApiService.markAsDownloaded(
-        resourceId: document.id,
+        document: document,
         user: user,
-      ).then((_) {
+      ).then((offlineDocument) {
         if (!mounted) {
           return;
         }
+        setState(() {
+          _recentDocuments = _recentDocuments
+              .map(
+                (item) => item.id == document.id
+                    ? item.copyWith(
+                        isDownloaded: true,
+                        filePath: offlineDocument.filePath,
+                        downloadedAt: offlineDocument.downloadedAt,
+                      )
+                    : item,
+              )
+              .toList();
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('"${document.title}" ajouté en offline.'),
