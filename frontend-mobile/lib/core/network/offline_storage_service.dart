@@ -30,6 +30,7 @@ class OfflineStorageService {
     await dio.download(sourceUrl, targetPath);
 
     final file = File(targetPath);
+    // ignore: avoid_slow_async_io
     final stat = await file.stat();
 
     final offlineDocument = document.copyWith(
@@ -84,6 +85,7 @@ class OfflineStorageService {
     final path = document.filePath;
     if (path != null && path.isNotEmpty) {
       final file = File(path);
+      // ignore: avoid_slow_async_io
       if (await file.exists()) {
         await file.delete();
       }
@@ -110,6 +112,7 @@ class OfflineStorageService {
     final root = await getApplicationDocumentsDirectory();
     final directory = Directory('${root.path}/offline/$userId');
 
+    // ignore: avoid_slow_async_io
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
@@ -142,8 +145,8 @@ class OfflineStorageService {
     final base = document.title
         .trim()
         .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
-        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp('[^a-z0-9]+'), '_')
+        .replaceAll(RegExp('_+'), '_')
         .replaceAll(RegExp(r'^_|_$'), '');
 
     return '${base.isEmpty ? 'document' : base}_${document.id}';
